@@ -32,12 +32,29 @@ impl Directory {
     }
 
     // Derives a session name from the directory's basename.
+    // Sanitizes the name for tmux compatibility (dots and colons are problematic).
     pub fn session_name(&self) -> String {
-        self.path
+        let name = self
+            .path
             .file_name()
             .map(|n| n.to_string_lossy().to_string())
-            .unwrap_or_else(|| "session".to_string())
+            .unwrap_or_else(|| "session".to_string());
+        sanitize_session_name(&name)
     }
+}
+
+// Sanitizes a session name for tmux compatibility.
+// Keeps alphanumeric chars, hyphens, and underscores; replaces others with underscores.
+fn sanitize_session_name(name: &str) -> String {
+    name.chars()
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect()
 }
 
 /* Discovers directories from the filesystem for session creation.
