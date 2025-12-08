@@ -45,7 +45,7 @@ impl Directory {
 
 // Sanitizes a session name for tmux compatibility.
 // Keeps alphanumeric chars, hyphens, and underscores; replaces others with underscores.
-fn sanitize_session_name(name: &str) -> String {
+pub fn sanitize_session_name(name: &str) -> String {
     name.chars()
         .map(|c| {
             if c.is_alphanumeric() || c == '-' || c == '_' {

@@ -22,6 +22,7 @@ pub fn handle_key(
         AppMode::Normal => handle_normal_mode(app, code, matcher),
         AppMode::Filtering => handle_filter_mode(app, code, matcher),
         AppMode::SelectingDirectory => handle_dir_mode(app, code, matcher),
+        AppMode::NamingSession => handle_naming_mode(app, code),
     }
 }
 
@@ -88,7 +89,7 @@ fn handle_dir_mode(app: &mut App, code: KeyCode, matcher: &mut nucleo::Matcher) 
         KeyCode::Home => app.select_dir_first(),
         KeyCode::End => app.select_dir_last(),
 
-        KeyCode::Enter => app.create_session_in_directory(),
+        KeyCode::Enter => app.enter_naming_mode(),
 
         KeyCode::Char('+') | KeyCode::Char('=') => app.increase_depth(matcher),
         KeyCode::Char('-') | KeyCode::Char('_') => app.decrease_depth(matcher),
@@ -111,6 +112,21 @@ fn handle_dir_mode(app: &mut App, code: KeyCode, matcher: &mut nucleo::Matcher) 
             app.apply_dir_filter(matcher);
         }
 
+        _ => {}
+    }
+}
+
+// Handles key events in session naming mode.
+fn handle_naming_mode(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Enter => app.confirm_session_name(),
+        KeyCode::Esc => app.cancel_naming(),
+        KeyCode::Backspace => {
+            app.session_name_input.pop();
+        }
+        KeyCode::Char(c) => {
+            app.session_name_input.push(c);
+        }
         _ => {}
     }
 }
