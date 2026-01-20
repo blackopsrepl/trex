@@ -28,7 +28,7 @@ pub fn handle_key(
 }
 
 // Handles key events in normal mode (session list navigation and actions).
-fn handle_normal_mode(app: &mut App, code: KeyCode, matcher: &mut nucleo::Matcher) {
+fn handle_normal_mode(app: &mut App, code: KeyCode, _matcher: &mut nucleo::Matcher) {
     match code {
         KeyCode::Char('j') | KeyCode::Down => {
             app.select_next();
@@ -63,12 +63,6 @@ fn handle_normal_mode(app: &mut App, code: KeyCode, matcher: &mut nucleo::Matche
         KeyCode::Char('/') => app.mode = AppMode::Filtering,
 
         KeyCode::Esc | KeyCode::Char('q') => app.should_quit = true,
-
-        KeyCode::Char(c) if c.is_alphanumeric() || c == '-' || c == '_' => {
-            app.mode = AppMode::Filtering;
-            app.filter_input.push(c);
-            app.apply_filter(matcher);
-        }
 
         _ => {}
     }
