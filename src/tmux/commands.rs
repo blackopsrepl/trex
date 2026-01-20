@@ -1,5 +1,6 @@
 use crate::tmux::parser::parse_sessions;
 use crate::tmux::session::TmuxSession;
+use crate::tmux::window::{TmuxWindow, parse_windows};
 use anyhow::{Result, bail};
 use std::os::unix::process::CommandExt;
 use std::process::Command;
@@ -26,7 +27,7 @@ impl TmuxClient {
             .args([
                 "list-sessions",
                 "-F",
-                "#{session_name}|#{session_attached}|#{session_windows}|#{session_path}",
+                "#{session_name}|#{session_attached}|#{session_windows}|#{session_path}|#{session_activity}",
             ])
             .output()?;
 
@@ -129,5 +130,79 @@ impl TmuxClient {
             bail!("Failed to detach all clients");
         }
         Ok(())
+    }
+
+    // Lists all windows in a session.
+    pub fn list_windows(session_name: &str) -> Result<Vec<TmuxWindow>> {
+        let output = Command::new("tmux")
+            .args([
+                "list-windows",
+                "-t",
+                session_name,
+                "-F",
+                "#{window_index}|#{window_name}|#{window_active}|#{pane_current_command}",
+            ])
+            .output()?;
+
+        if !output.status.success() {
+            return Ok(Vec::new());
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        Ok(parse_windows(&stdout))
+    }
+
+    // Attaches to a specific window in a session, replacing the current process via exec.
+    pub fn attach_window(session_name: &str, window_index: u32) -> Result<()> {
+        let target = format!("{}:{}", session_name, window_index);
+        let err = Command::new("tmux")
+            .args(["attach-session", "-t", &target])
+            .exec();
+
+        bail!("Failed to attach to window: {}: {}", target, err);
+    }
+
+    // Switches to a specific window in a session.
+    pub fn switch_to_window(session_name: &str, window_index: u32) -> Result<()> {
+        let target = format!("{}:{}", session_name, window_index);
+        let status = Command::new("tmux")
+            .args(["switch-client", "-t", &target])
+            .status()?;
+
+        if !status.success() {
+            bail!("Failed to switch to window: {}", target);
+        }
+        Ok(())
+    }
+
+    // Attaches or switches to a specific window depending on whether we're inside tmux.
+    pub fn attach_or_switch_window(session_name: &str, window_index: u32) -> Result<()> {
+        if Self::is_inside_tmux() {
+            Self::switch_to_window(session_name, window_index)
+        } else {
+            Self::attach_window(session_name, window_index)
+        }
+    }
+
+    // Captures the content of the current pane in a session.
+    pub fn capture_pane(session_name: &str, lines: usize) -> Result<Vec<String>> {
+        let start_line = format!("-{}", lines);
+        let output = Command::new("tmux")
+            .args([
+                "capture-pane",
+                "-t",
+                &format!("{}:", session_name),
+                "-p",
+                "-S",
+                &start_line,
+            ])
+            .output()?;
+
+        if !output.status.success() {
+            return Ok(Vec::new());
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        Ok(stdout.lines().map(|l| l.to_string()).collect())
     }
 }
