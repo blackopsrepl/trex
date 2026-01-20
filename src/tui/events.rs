@@ -23,16 +23,29 @@ pub fn handle_key(
         AppMode::Filtering => handle_filter_mode(app, code, matcher),
         AppMode::SelectingDirectory => handle_dir_mode(app, code, matcher),
         AppMode::NamingSession => handle_naming_mode(app, code),
+        AppMode::ExpandedSession => handle_expanded_mode(app, code),
     }
 }
 
 // Handles key events in normal mode (session list navigation and actions).
 fn handle_normal_mode(app: &mut App, code: KeyCode, matcher: &mut nucleo::Matcher) {
     match code {
-        KeyCode::Char('j') | KeyCode::Down => app.select_next(),
-        KeyCode::Char('k') | KeyCode::Up => app.select_previous(),
-        KeyCode::Char('g') | KeyCode::Home => app.select_first(),
-        KeyCode::Char('G') | KeyCode::End => app.select_last(),
+        KeyCode::Char('j') | KeyCode::Down => {
+            app.select_next();
+            app.refresh_preview();
+        }
+        KeyCode::Char('k') | KeyCode::Up => {
+            app.select_previous();
+            app.refresh_preview();
+        }
+        KeyCode::Char('g') | KeyCode::Home => {
+            app.select_first();
+            app.refresh_preview();
+        }
+        KeyCode::Char('G') | KeyCode::End => {
+            app.select_last();
+            app.refresh_preview();
+        }
 
         KeyCode::Enter => app.attach_selected(),
         KeyCode::Char('d') => app.delete_selected(),
@@ -40,6 +53,12 @@ fn handle_normal_mode(app: &mut App, code: KeyCode, matcher: &mut nucleo::Matche
         KeyCode::Char('x') => app.detach_selected(),
         KeyCode::Char('X') => app.detach_all(),
         KeyCode::Char('c') => app.mode = AppMode::SelectingDirectory,
+
+        // Window expansion
+        KeyCode::Char('l') | KeyCode::Right => app.expand_selected(),
+
+        // Preview toggle
+        KeyCode::Char('p') => app.toggle_preview(),
 
         KeyCode::Char('/') => app.mode = AppMode::Filtering,
 
@@ -127,6 +146,23 @@ fn handle_naming_mode(app: &mut App, code: KeyCode) {
         KeyCode::Char(c) => {
             app.session_name_input.push(c);
         }
+        _ => {}
+    }
+}
+
+// Handles key events in expanded session mode (window list navigation).
+fn handle_expanded_mode(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Char('j') | KeyCode::Down => app.select_next_window(),
+        KeyCode::Char('k') | KeyCode::Up => app.select_previous_window(),
+
+        KeyCode::Enter => app.attach_selected_window(),
+
+        // Collapse back to normal mode
+        KeyCode::Char('h') | KeyCode::Left | KeyCode::Esc => app.collapse_session(),
+
+        KeyCode::Char('q') => app.should_quit = true,
+
         _ => {}
     }
 }

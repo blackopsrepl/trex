@@ -1,5 +1,5 @@
 use crate::directory::Directory;
-use crate::tmux::TmuxSession;
+use crate::tmux::{TmuxClient, TmuxSession, TmuxWindow};
 
 // The current mode of the application.
 #[derive(Debug, Clone, PartialEq)]
@@ -8,12 +8,14 @@ pub enum AppMode {
     Filtering,
     SelectingDirectory,
     NamingSession,
+    ExpandedSession,
 }
 
 // An action to perform after exiting the TUI.
 #[derive(Debug, Clone)]
 pub enum SessionAction {
     Attach(String),
+    AttachWindow(String, u32),
     Create(String, std::path::PathBuf),
     Delete(String),
     DeleteAll,
@@ -40,6 +42,15 @@ pub struct App {
     // Session naming state
     pub session_name_input: String,
     pub selected_dir_path: Option<std::path::PathBuf>,
+
+    // Window expansion state
+    pub expanded_session: Option<String>,
+    pub expanded_windows: Vec<TmuxWindow>,
+    pub selected_window_index: usize,
+
+    // Preview state
+    pub show_preview: bool,
+    pub preview_lines: Vec<String>,
 }
 
 impl App {
@@ -71,6 +82,11 @@ impl App {
             dir_scan_depth,
             session_name_input: String::new(),
             selected_dir_path: None,
+            expanded_session: None,
+            expanded_windows: Vec::new(),
+            selected_window_index: 0,
+            show_preview: false,
+            preview_lines: Vec::new(),
         }
     }
 
@@ -330,5 +346,89 @@ impl App {
         self.filter_input.clear();
         self.apply_filter(matcher);
         self.mode = AppMode::Normal;
+    }
+
+    // Expands the selected session to show its windows.
+    pub fn expand_selected(&mut self) {
+        if let Some(session) = self.selected_session() {
+            let session_name = session.name.clone();
+            if let Ok(windows) = TmuxClient::list_windows(&session_name) {
+                self.expanded_session = Some(session_name);
+                self.expanded_windows = windows;
+                self.selected_window_index = 0;
+                self.mode = AppMode::ExpandedSession;
+            }
+        }
+    }
+
+    // Collapses the expanded session view.
+    pub fn collapse_session(&mut self) {
+        self.expanded_session = None;
+        self.expanded_windows.clear();
+        self.selected_window_index = 0;
+        self.mode = AppMode::Normal;
+    }
+
+    // Moves selection to the next window (wraps around).
+    pub fn select_next_window(&mut self) {
+        if !self.expanded_windows.is_empty() {
+            self.selected_window_index =
+                (self.selected_window_index + 1) % self.expanded_windows.len();
+        }
+    }
+
+    // Moves selection to the previous window (wraps around).
+    pub fn select_previous_window(&mut self) {
+        if !self.expanded_windows.is_empty() {
+            self.selected_window_index = if self.selected_window_index == 0 {
+                self.expanded_windows.len() - 1
+            } else {
+                self.selected_window_index - 1
+            };
+        }
+    }
+
+    // Returns the currently selected window, if any.
+    pub fn selected_window(&self) -> Option<&TmuxWindow> {
+        self.expanded_windows.get(self.selected_window_index)
+    }
+
+    // Attaches to the selected window.
+    pub fn attach_selected_window(&mut self) {
+        if let (Some(session_name), Some(window)) =
+            (&self.expanded_session, self.selected_window())
+        {
+            self.action = Some(SessionAction::AttachWindow(
+                session_name.clone(),
+                window.index,
+            ));
+            self.should_quit = true;
+        }
+    }
+
+    // Toggles the preview panel.
+    pub fn toggle_preview(&mut self) {
+        self.show_preview = !self.show_preview;
+        if self.show_preview {
+            self.refresh_preview();
+        } else {
+            self.preview_lines.clear();
+        }
+    }
+
+    // Refreshes the preview for the currently selected session.
+    pub fn refresh_preview(&mut self) {
+        if !self.show_preview {
+            return;
+        }
+        if let Some(session) = self.selected_session() {
+            if let Ok(lines) = TmuxClient::capture_pane(&session.name, 30) {
+                self.preview_lines = lines;
+            } else {
+                self.preview_lines.clear();
+            }
+        } else {
+            self.preview_lines.clear();
+        }
     }
 }
