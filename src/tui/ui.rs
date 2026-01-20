@@ -42,6 +42,10 @@ const TREX_ASCII: &str = r#"                  \/
                                               ;,-"'`)%%)
                                              /"      "|"#;
 
+// The eye is on line 4 (0-indexed), character 'o'
+const EYE_LINE: usize = 4;
+const EYE_CHAR: char = 'o';
+
 // Green rainbow gradient - from dark to lime to bright (lolcat-style)
 const GREEN_GRADIENT: [(u8, u8, u8); 8] = [
     (0, 60, 20),    // Dark forest
@@ -546,7 +550,23 @@ fn render_background_trex(frame: &mut Frame, area: Rect) {
         .enumerate()
         .map(|(idx, line)| {
             let (r, g, b) = GREEN_GRADIENT[idx % GREEN_GRADIENT.len()];
-            Line::from(Span::styled(line, Style::default().fg(Color::Rgb(r, g, b))))
+            let green_style = Style::default().fg(Color::Rgb(r, g, b));
+            // Reddish eye with slight green tint
+            let eye_style = Style::default().fg(Color::Rgb(220, 50, 30));
+
+            // Build spans with per-character coloring for the red eye
+            let spans: Vec<Span> = line
+                .chars()
+                .map(|c| {
+                    if idx == EYE_LINE && c == EYE_CHAR {
+                        Span::styled(c.to_string(), eye_style)
+                    } else {
+                        Span::styled(c.to_string(), green_style)
+                    }
+                })
+                .collect();
+
+            Line::from(spans)
         })
         .collect();
 
