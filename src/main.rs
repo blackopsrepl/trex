@@ -1,7 +1,9 @@
 mod directory;
+mod git;
 mod tmux;
 mod tui;
 
+use crate::git::GitStatus;
 use crate::tmux::{TmuxClient, find_matching_session_index};
 use crate::tui::app::SessionAction;
 
@@ -50,12 +52,24 @@ fn main() -> Result<()> {
         );
     }
 
-    let sessions = TmuxClient::list_sessions()?;
+    let mut sessions = TmuxClient::list_sessions()?;
+
+    // Fetch git status for all sessions with paths
+    for session in &mut sessions {
+        if let Some(ref path) = session.path {
+            session.git_status = Some(GitStatus::for_path(path));
+        }
+    }
+
     let preselect_index = find_matching_session_index(&sessions);
 
     match tui::run_tui_with_preselection(sessions, preselect_index)? {
         Some(SessionAction::Attach(name)) => {
             TmuxClient::attach_or_switch(&name)?;
+        }
+
+        Some(SessionAction::AttachWindow(session_name, window_index)) => {
+            TmuxClient::attach_or_switch_window(&session_name, window_index)?;
         }
 
         Some(SessionAction::Create(name, path)) => {
