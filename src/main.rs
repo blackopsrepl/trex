@@ -1,5 +1,6 @@
 mod directory;
 mod git;
+mod process;
 mod tmux;
 mod tui;
 

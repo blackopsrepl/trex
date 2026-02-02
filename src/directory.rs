@@ -1,22 +1,17 @@
 use std::path::PathBuf;
 
-/// Minimum scan depth for directory discovery.
+// Scan depth for directory discovery
 pub const MIN_DEPTH: u32 = 1;
-
-/// Maximum scan depth for directory discovery.
 pub const MAX_DEPTH: u32 = 6;
-
-/// Default scan depth for directory discovery.
 pub const DEFAULT_DEPTH: u32 = 3;
 
-/// A directory that can be used to create a new tmux session.
+// A directory that can be used to create a new tmux session.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Directory {
     pub path: PathBuf,
 }
 
 impl Directory {
-    // Creates a new `Directory` from a path.
     pub fn new(path: PathBuf) -> Self {
         Self { path }
     }

@@ -1,9 +1,10 @@
 # trex
 
-A fast, minimal tmux session manager with fuzzy finding and an interactive TUI.
+A fast, minimal tmux session manager with fuzzy finding, an interactive TUI, and real-time AI coding agent monitoring.
 
 ## Features
 
+- **AI Agent Dashboard** - Monitor running AI coding assistants (Claude, OpenCode, Zoyd) with real-time activity indicators
 - **Interactive TUI** - Browse and manage tmux sessions with a clean, responsive interface
 - **Fuzzy Finding** - Quickly filter sessions and directories with fuzzy search powered by `nucleo`
 - **Smart Session Selection** - Automatically preselects sessions matching your current directory
@@ -99,15 +100,15 @@ Now pressing `Ctrl+T` will launch trex!
 
 ### Keybindings
 
-#### Normal Mode (Session List)
+#### Normal Mode (Agent & Session Navigation)
 
 | Key | Action |
 |-----|--------|
-| `j` / `Down` | Navigate down |
-| `k` / `Up` | Navigate up |
-| `g` / `Home` | Jump to first session |
-| `G` / `End` | Jump to last session |
-| `Enter` | Attach to selected session |
+| `j` / `Down` | Navigate down (agents → sessions) |
+| `k` / `Up` | Navigate up (sessions → agents) |
+| `g` / `Home` | Jump to first item in current area |
+| `G` / `End` | Jump to last item in current area |
+| `Enter` | Attach to selected agent's session or selected session |
 | `l` / `Right` | Expand session to show windows |
 | `p` | Toggle live preview panel |
 | `c` | Enter directory selection mode (create new session) |
@@ -155,14 +156,37 @@ Now pressing `Ctrl+T` will launch trex!
 
 ## How It Works
 
+### AI Agent Dashboard
+
+The top section displays all running AI coding assistants with real-time status:
+
+```
+┌─ RUNNING AGENTS ────────────────────────────────────────┐
+│ ▶ claude:my-project ●    ⏸ opencode:api-server ●       │
+│ ⏸ zoyd:frontend ●                                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+- **Activity indicators**: `▶` green (running/active), `⏸` yellow (waiting/idle), `◼` gray (unknown)
+- **Tmux indicators**: `●` in a tmux session, `○` standalone terminal
+- **Process name**: The AI assistant (claude, opencode, zoyd)
+- **Project name**: Derived from the process's working directory
+- **Real-time updates**: Activity state refreshes every 100ms, process list every 2 seconds
+
+Navigate to the agent box by pressing `k` from the top of the session list. Press `Enter` on any agent to jump directly to its tmux session.
+
+When viewing an expanded session or using preview mode, the agent box filters to show only agents running in that specific session.
+
 ### Session Display
 
 Each session in the list shows rich information at a glance:
 
 ```
-●* api-server (3 win) 2m  main +3 ↑2  ~/projects/api
-○  frontend (2 win) 15m  feature/auth  ~/work/frontend
-◌  old-project (1 win) 2h  ~/archive/old
+┌─ Sessions (3) ──────────────────────────────────────────┐
+│ ●* api-server (3 win) 2m  main +3 ↑2  ~/projects/api   │
+│ ○  frontend (2 win) 15m  feature/auth  ~/work/frontend │
+│ ◌  old-project (1 win) 2h  ~/archive/old               │
+└─────────────────────────────────────────────────────────┘
 ```
 
 - **Activity indicator**: `●` green (active < 5min), `○` yellow (idle 5-30min), `◌` gray (dormant > 30min)
@@ -243,15 +267,19 @@ trex is organized into several modules:
 
 - **`src/directory.rs`** - Directory discovery and fuzzy matching
 - **`src/git.rs`** - Git repository status detection (branch, dirty files, ahead/behind)
+- **`src/process.rs`** - AI coding assistant detection and monitoring
+  - Scans `/proc` filesystem for claude, opencode, zoyd processes
+  - Maps process TTY to tmux session names
+  - Reads process state (Running/Waiting) from `/proc/{pid}/stat`
 - **`src/tmux/`** - Tmux integration
   - `commands.rs` - Tmux CLI wrapper (sessions, windows, pane capture)
   - `session.rs` - Session struct with activity tracking
   - `window.rs` - Window struct for expanded view
   - `parser.rs` - Output parsing
 - **`src/tui/`** - Terminal UI
-  - `app.rs` - Application state and business logic
-  - `events.rs` - Keyboard event handling
-  - `ui.rs` - Rendering (sessions, windows, preview panel)
+  - `app.rs` - Application state, focus tracking, and business logic
+  - `events.rs` - Keyboard event handling with agent/session navigation
+  - `ui.rs` - Rendering (agents, sessions, windows, preview)
 - **`src/main.rs`** - Entry point and action handling
 
 ## Dependencies

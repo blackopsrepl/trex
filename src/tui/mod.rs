@@ -15,6 +15,7 @@ use crossterm::{
 };
 use ratatui::{Terminal, backend::CrosstermBackend};
 use std::io::{Stdout, Write, stdout};
+use std::time::{Duration, Instant};
 
 // Runs the TUI with a specific session preselected.
 //
@@ -48,13 +49,28 @@ fn run_app(
     app: &mut App,
     matcher: &mut nucleo::Matcher,
 ) -> Result<()> {
+    let mut last_state_refresh = Instant::now();
+    let mut last_full_rescan = Instant::now();
+
     loop {
         terminal.draw(|frame| render(frame, app))?;
 
-        if event::poll(std::time::Duration::from_millis(100))?
+        if event::poll(Duration::from_millis(100))?
             && let Event::Key(key) = event::read()?
         {
             handle_key(app, key.code, key.modifiers, matcher);
+        }
+
+        // Refresh process states every 100ms (real-time activity indicators)
+        if last_state_refresh.elapsed() >= Duration::from_millis(100) {
+            app.refresh_ai_process_states();
+            last_state_refresh = Instant::now();
+        }
+
+        // Full rescan for new/exited processes every 2 seconds
+        if last_full_rescan.elapsed() >= Duration::from_secs(2) {
+            app.rescan_ai_processes();
+            last_full_rescan = Instant::now();
         }
 
         if app.should_quit {

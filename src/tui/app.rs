@@ -1,4 +1,5 @@
 use crate::directory::Directory;
+use crate::process::{find_ai_processes, process_exists, read_process_state, AiProcessInfo};
 use crate::tmux::{TmuxClient, TmuxSession, TmuxWindow};
 
 // The current mode of the application.
@@ -9,6 +10,14 @@ pub enum AppMode {
     SelectingDirectory,
     NamingSession,
     ExpandedSession,
+}
+
+// Which UI area has keyboard focus.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub enum FocusArea {
+    Agents,
+    #[default]
+    Sessions,
 }
 
 // An action to perform after exiting the TUI.
@@ -51,6 +60,13 @@ pub struct App {
     // Preview state
     pub show_preview: bool,
     pub preview_lines: Vec<String>,
+
+    // AI process detection
+    pub ai_processes: Vec<AiProcessInfo>,
+
+    // Focus tracking for agent/session navigation
+    pub focus: FocusArea,
+    pub agent_selected_index: usize,
 }
 
 impl App {
@@ -66,6 +82,8 @@ impl App {
         let dir_scan_depth = crate::directory::DEFAULT_DEPTH;
         let directories = crate::directory::discover_directories_with_depth(dir_scan_depth);
         let dir_filtered_indices: Vec<usize> = (0..directories.len()).collect();
+
+        let ai_processes = find_ai_processes().unwrap_or_default();
 
         Self {
             sessions,
@@ -87,6 +105,9 @@ impl App {
             selected_window_index: 0,
             show_preview: false,
             preview_lines: Vec::new(),
+            ai_processes,
+            focus: FocusArea::default(),
+            agent_selected_index: 0,
         }
     }
 
@@ -395,8 +416,7 @@ impl App {
 
     // Attaches to the selected window.
     pub fn attach_selected_window(&mut self) {
-        if let (Some(session_name), Some(window)) =
-            (&self.expanded_session, self.selected_window())
+        if let (Some(session_name), Some(window)) = (&self.expanded_session, self.selected_window())
         {
             self.action = Some(SessionAction::AttachWindow(
                 session_name.clone(),
@@ -430,5 +450,103 @@ impl App {
         } else {
             self.preview_lines.clear();
         }
+    }
+
+    // ===== AI Process / Agent Methods =====
+
+    // Returns the list of visible agents based on current mode.
+    // In ExpandedSession mode or with preview, filters to agents in the selected/expanded session.
+    pub fn visible_agents(&self) -> Vec<&AiProcessInfo> {
+        let filter_session = match &self.mode {
+            AppMode::ExpandedSession => self.expanded_session.as_ref(),
+            _ if self.show_preview => self.selected_session().map(|s| &s.name),
+            _ => None,
+        };
+
+        match filter_session {
+            Some(session_name) => self
+                .ai_processes
+                .iter()
+                .filter(|p| p.tmux_session.as_ref() == Some(session_name))
+                .collect(),
+            None => self.ai_processes.iter().collect(),
+        }
+    }
+
+    // Refreshes the activity state of all known AI processes (fast operation).
+    pub fn refresh_ai_process_states(&mut self) {
+        for proc in &mut self.ai_processes {
+            if process_exists(proc.pid) {
+                proc.activity_state = read_process_state(proc.pid);
+            }
+        }
+    }
+
+    // Rescans for AI processes (detects new/exited processes).
+    pub fn rescan_ai_processes(&mut self) {
+        if let Ok(new_processes) = find_ai_processes() {
+            self.ai_processes = new_processes;
+            // Ensure agent selection is still valid
+            let visible_count = self.visible_agents().len();
+            if self.agent_selected_index >= visible_count && visible_count > 0 {
+                self.agent_selected_index = visible_count - 1;
+            }
+        }
+    }
+
+    // Moves agent selection to the next agent.
+    pub fn select_agent_next(&mut self) {
+        let len = self.visible_agents().len();
+        if len > 0 {
+            self.agent_selected_index = (self.agent_selected_index + 1).min(len - 1);
+        }
+    }
+
+    // Moves agent selection to the previous agent.
+    pub fn select_agent_previous(&mut self) {
+        self.agent_selected_index = self.agent_selected_index.saturating_sub(1);
+    }
+
+    // Moves agent selection to the first agent.
+    pub fn select_agent_first(&mut self) {
+        self.agent_selected_index = 0;
+    }
+
+    // Moves agent selection to the last agent.
+    pub fn select_agent_last(&mut self) {
+        let len = self.visible_agents().len();
+        if len > 0 {
+            self.agent_selected_index = len - 1;
+        }
+    }
+
+    // Returns the currently selected agent, if any.
+    pub fn selected_agent(&self) -> Option<&AiProcessInfo> {
+        self.visible_agents()
+            .get(self.agent_selected_index)
+            .copied()
+    }
+
+    // Attaches to the tmux session of the selected agent.
+    pub fn attach_selected_agent(&mut self) {
+        if let Some(agent) = self.selected_agent()
+            && let Some(session_name) = &agent.tmux_session
+            // Don't attach to placeholder "(tmux)" session
+            && session_name != "(tmux)"
+        {
+            self.action = Some(SessionAction::Attach(session_name.clone()));
+            self.should_quit = true;
+        }
+    }
+
+    // Checks if we're at the top of the session list (for navigation to agents).
+    pub fn at_top_of_sessions(&self) -> bool {
+        self.selected_index == 0
+    }
+
+    // Checks if we're at the bottom of the agent list (for navigation to sessions).
+    pub fn at_bottom_of_agents(&self) -> bool {
+        let len = self.visible_agents().len();
+        len == 0 || self.agent_selected_index >= len.saturating_sub(1)
     }
 }

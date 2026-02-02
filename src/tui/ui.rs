@@ -1,5 +1,6 @@
+use crate::process::ProcessState;
 use crate::tmux::ActivityLevel;
-use crate::tui::app::{App, AppMode};
+use crate::tui::app::{App, AppMode, FocusArea};
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
@@ -7,6 +8,9 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, List, ListItem, Paragraph},
 };
+
+// Glowing emerald green for selected agents
+const EMERALD_GREEN: Color = Color::Rgb(80, 200, 120);
 
 // The majestic T-Rex king, holding his tmux windows
 const TREX_ASCII: &str = r#"                  \/
@@ -63,6 +67,44 @@ pub fn render(frame: &mut Frame, app: &App) {
     // Render decorative T-Rex background first (behind everything)
     render_background_trex(frame, frame.area());
 
+    match app.mode {
+        AppMode::SelectingDirectory => render_directory_mode(frame, app),
+        AppMode::NamingSession => render_naming_mode(frame, app),
+        AppMode::ExpandedSession => render_expanded_mode(frame, app),
+        _ => render_normal_mode(frame, app),
+    }
+}
+
+fn render_normal_mode(frame: &mut Frame, app: &App) {
+    let visible_agents = app.visible_agents();
+    let agent_rows = if visible_agents.is_empty() { 1 } else { visible_agents.len().min(5) } as u16;
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(agent_rows + 2), // Agent box (content + borders)
+            Constraint::Min(1),                 // Sessions
+            Constraint::Length(1),              // Help
+        ])
+        .split(frame.area());
+
+    render_agent_box(frame, app, chunks[0]);
+
+    // If preview is enabled, split the session area
+    if app.show_preview {
+        let main_chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+            .split(chunks[1]);
+        render_session_list(frame, app, main_chunks[0]);
+        render_preview(frame, app, main_chunks[1]);
+    } else {
+        render_session_list(frame, app, chunks[1]);
+    }
+    render_help(frame, app, chunks[2]);
+}
+
+fn render_directory_mode(frame: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -72,85 +114,205 @@ pub fn render(frame: &mut Frame, app: &App) {
         ])
         .split(frame.area());
 
-    match app.mode {
-        AppMode::SelectingDirectory => {
-            render_header_dir(frame, app, chunks[0]);
-            render_directory_list(frame, app, chunks[1]);
-            render_help_dir(frame, chunks[2]);
-        }
-        AppMode::NamingSession => {
-            render_header_naming(frame, app, chunks[0]);
-            render_naming_preview(frame, app, chunks[1]);
-            render_help_naming(frame, chunks[2]);
-        }
-        AppMode::ExpandedSession => {
-            render_header_expanded(frame, app, chunks[0]);
-            render_window_list(frame, app, chunks[1]);
-            render_help_expanded(frame, chunks[2]);
-        }
-        _ => {
-            render_header(frame, app, chunks[0]);
-            // If preview is enabled, split the main area
-            if app.show_preview {
-                let main_chunks = Layout::default()
-                    .direction(Direction::Horizontal)
-                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-                    .split(chunks[1]);
-                render_session_list(frame, app, main_chunks[0]);
-                render_preview(frame, app, main_chunks[1]);
-            } else {
-                render_session_list(frame, app, chunks[1]);
-            }
-            render_help(frame, app, chunks[2]);
-        }
-    }
+    render_header_dir(frame, app, chunks[0]);
+    render_directory_list(frame, app, chunks[1]);
+    render_help_dir(frame, chunks[2]);
 }
 
-// Renders the header bar showing mode and filter input.
-fn render_header(frame: &mut Frame, app: &App, area: Rect) {
-    let preview_indicator = if app.show_preview { " [preview] " } else { "" };
-    let (title, style) = match app.mode {
-        AppMode::Normal => (
-            format!(" trex - {} sessions{}", app.sessions.len(), preview_indicator),
-            Style::default().fg(Color::Cyan),
-        ),
-        AppMode::Filtering => (
-            format!(" > {}{}", app.filter_input, preview_indicator),
-            Style::default().fg(Color::Yellow),
-        ),
-        AppMode::SelectingDirectory | AppMode::NamingSession => (
-            format!(" Select directory > {} ", app.dir_filter_input),
-            Style::default().fg(Color::Green),
-        ),
-        AppMode::ExpandedSession => (
-            format!(
-                " {} - {} windows ",
-                app.expanded_session.as_deref().unwrap_or(""),
-                app.expanded_windows.len()
-            ),
-            Style::default().fg(Color::Blue),
-        ),
+fn render_naming_mode(frame: &mut Frame, app: &App) {
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(1),
+            Constraint::Length(1),
+        ])
+        .split(frame.area());
+
+    render_header_naming(frame, app, chunks[0]);
+    render_naming_preview(frame, app, chunks[1]);
+    render_help_naming(frame, chunks[2]);
+}
+
+fn render_expanded_mode(frame: &mut Frame, app: &App) {
+    let visible_agents = app.visible_agents();
+    let agent_rows = if visible_agents.is_empty() { 1 } else { visible_agents.len().min(5) } as u16;
+
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(agent_rows + 2), // Agent box (filtered to session)
+            Constraint::Min(1),                 // Windows
+            Constraint::Length(1),              // Help
+        ])
+        .split(frame.area());
+
+    render_agent_box(frame, app, chunks[0]);
+    render_window_list(frame, app, chunks[1]);
+    render_help_expanded(frame, chunks[2]);
+}
+
+fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
+    let visible_agents = app.visible_agents();
+
+    // Determine title based on mode
+    let title = match &app.mode {
+        AppMode::ExpandedSession => {
+            let session_name = app.expanded_session.as_deref().unwrap_or("session");
+            format!(" AGENTS IN: {} ", session_name)
+        }
+        _ if app.show_preview => {
+            if let Some(session) = app.selected_session() {
+                format!(" AGENTS IN: {} ", session.name)
+            } else {
+                " RUNNING AGENTS ".to_string()
+            }
+        }
+        _ => " RUNNING AGENTS ".to_string(),
+    };
+
+    let border_color = if app.focus == FocusArea::Agents {
+        Color::Magenta
+    } else {
+        Color::DarkGray
     };
 
     let block = Block::default()
         .borders(Borders::ALL)
-        .border_style(style)
+        .border_style(Style::default().fg(border_color))
         .title(title);
 
+    let inner = block.inner(area);
     frame.render_widget(block, area);
+
+    // Handle empty state
+    if visible_agents.is_empty() {
+        let empty_text = Paragraph::new(" No agents running")
+            .style(Style::default().fg(Color::DarkGray).add_modifier(Modifier::ITALIC));
+        frame.render_widget(empty_text, inner);
+        return;
+    }
+
+    const COL_WIDTH: usize = 30;
+    const MAX_ROWS: usize = 5;
+
+    let process_count = visible_agents.len();
+    let num_cols = (inner.width as usize / COL_WIDTH).max(1);
+    let max_display = num_cols * MAX_ROWS;
+    let display_count = process_count.min(max_display);
+    let num_rows = display_count.min(MAX_ROWS);
+    let show_more = process_count > max_display;
+
+    // Build lines with dynamic columns (column-first: fill top-to-bottom, then left-to-right)
+    let mut lines: Vec<Line> = Vec::new();
+    for row in 0..num_rows {
+        let mut spans = Vec::new();
+
+        for col in 0..num_cols {
+            let idx = col * MAX_ROWS + row;
+            if idx < display_count {
+                let proc = visible_agents[idx];
+                let is_selected = app.focus == FocusArea::Agents && idx == app.agent_selected_index;
+
+                // Activity indicator based on process state
+                let (activity_icon, activity_color) = match proc.activity_state {
+                    ProcessState::Running => ("▶", Color::Green),
+                    ProcessState::Waiting => ("⏸", Color::Yellow),
+                    ProcessState::Unknown => ("◼", Color::DarkGray),
+                };
+
+                // Tmux indicator
+                let tmux_icon = if proc.tmux_session.is_some() { "●" } else { "○" };
+
+                // Project name (truncated)
+                let display_name = if proc.project_name.len() > 12 {
+                    format!("{}...", &proc.project_name[..12])
+                } else {
+                    proc.project_name.clone()
+                };
+
+                // Text color: emerald green when selected, otherwise based on activity
+                let text_color = if is_selected {
+                    EMERALD_GREEN
+                } else {
+                    Color::DarkGray
+                };
+
+                let text_style = if is_selected {
+                    Style::default().fg(text_color).add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(text_color)
+                };
+
+                // For activity icon, we need separate spans to color it
+                spans.push(Span::styled(" ", text_style));
+                spans.push(Span::styled(activity_icon, Style::default().fg(activity_color)));
+                spans.push(Span::styled(
+                    format!(" {}:{} {}", proc.process_name, display_name, tmux_icon),
+                    text_style,
+                ));
+
+                // Add padding to reach column width
+                let current_len = 1 + activity_icon.chars().count() + 1 + proc.process_name.len() + 1 + display_name.len() + 1 + tmux_icon.chars().count();
+                if current_len < COL_WIDTH {
+                    spans.push(Span::raw(" ".repeat(COL_WIDTH - current_len)));
+                }
+            }
+        }
+
+        if !spans.is_empty() {
+            lines.push(Line::from(spans));
+        }
+    }
+
+    let ai_paragraph = Paragraph::new(lines);
+    frame.render_widget(ai_paragraph, inner);
+
+    // Render "+N more" at bottom-right only if processes don't fit
+    if show_more {
+        let extra = process_count - max_display;
+        let more_text = format!("+{} more ", extra);
+        let more_width = more_text.len() as u16;
+        let more_area = Rect {
+            x: inner.x + inner.width.saturating_sub(more_width),
+            y: inner.y + inner.height.saturating_sub(1),
+            width: more_width,
+            height: 1,
+        };
+        let more_paragraph =
+            Paragraph::new(more_text).style(Style::default().fg(Color::DarkGray));
+        frame.render_widget(more_paragraph, more_area);
+    }
 }
 
 // Renders the session list with selection highlighting.
 fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
+    // Title includes session count and filter input if filtering
+    let title = match app.mode {
+        AppMode::Filtering => format!(" Sessions ({}) > {} ", app.filtered_indices.len(), app.filter_input),
+        _ => format!(" Sessions ({}) ", app.sessions.len()),
+    };
+
+    let border_color = if app.focus == FocusArea::Sessions {
+        Color::Cyan
+    } else {
+        Color::DarkGray
+    };
+
     if app.filtered_indices.is_empty() {
         let empty_msg = if app.sessions.is_empty() {
-            "No tmux sessions found. Create one with: tmux new -s <name>"
+            "No tmux sessions found. Press 'c' to create one."
         } else {
             "No sessions match your filter"
         };
         let paragraph = Paragraph::new(empty_msg)
             .style(Style::default().fg(Color::DarkGray))
-            .block(Block::default().borders(Borders::ALL));
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(Style::default().fg(border_color))
+                    .title(title),
+            );
         frame.render_widget(paragraph, area);
         return;
     }
@@ -161,7 +323,7 @@ fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
         .enumerate()
         .map(|(idx, &session_idx)| {
             let session = &app.sessions[session_idx];
-            let is_selected = idx == app.selected_index;
+            let is_selected = app.focus == FocusArea::Sessions && idx == app.selected_index;
 
             // Activity indicator with color based on activity level
             let (activity_icon, activity_color) = match session.activity_level() {
@@ -238,7 +400,12 @@ fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
         })
         .collect();
 
-    let list = List::new(items).block(Block::default().borders(Borders::ALL));
+    let list = List::new(items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(border_color))
+            .title(title),
+    );
 
     frame.render_widget(list, area);
 }
@@ -424,26 +591,20 @@ fn render_help_naming(frame: &mut Frame, area: Rect) {
     frame.render_widget(paragraph, area);
 }
 
-// Renders the header for expanded session mode.
-fn render_header_expanded(frame: &mut Frame, app: &App, area: Rect) {
-    let session_name = app.expanded_session.as_deref().unwrap_or("Unknown");
-    let title = format!(" {} - {} windows ", session_name, app.expanded_windows.len());
-    let style = Style::default().fg(Color::Blue);
-
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_style(style)
-        .title(title);
-
-    frame.render_widget(block, area);
-}
-
 // Renders the window list for expanded session mode.
 fn render_window_list(frame: &mut Frame, app: &App, area: Rect) {
+    let session_name = app.expanded_session.as_deref().unwrap_or("session");
+    let title = format!(" {} - {} windows ", session_name, app.expanded_windows.len());
+
     if app.expanded_windows.is_empty() {
         let paragraph = Paragraph::new("No windows found")
             .style(Style::default().fg(Color::DarkGray))
-            .block(Block::default().borders(Borders::ALL));
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(Style::default().fg(Color::Blue))
+                    .title(title),
+            );
         frame.render_widget(paragraph, area);
         return;
     }
@@ -492,7 +653,12 @@ fn render_window_list(frame: &mut Frame, app: &App, area: Rect) {
         })
         .collect();
 
-    let list = List::new(items).block(Block::default().borders(Borders::ALL));
+    let list = List::new(items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Blue))
+            .title(title),
+    );
 
     frame.render_widget(list, area);
 }
