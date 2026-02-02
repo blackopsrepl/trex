@@ -1,4 +1,4 @@
-use crate::tui::app::{App, AppMode};
+use crate::tui::app::{App, AppMode, FocusArea};
 use crossterm::event::{KeyCode, KeyModifiers};
 
 // Handles a key event and updates the app state accordingly.
@@ -31,31 +31,86 @@ pub fn handle_key(
 fn handle_normal_mode(app: &mut App, code: KeyCode, _matcher: &mut nucleo::Matcher) {
     match code {
         KeyCode::Char('j') | KeyCode::Down => {
-            app.select_next();
+            match app.focus {
+                FocusArea::Agents => {
+                    if app.at_bottom_of_agents() {
+                        // Move focus to sessions
+                        app.focus = FocusArea::Sessions;
+                        app.select_first();
+                    } else {
+                        app.select_agent_next();
+                    }
+                }
+                FocusArea::Sessions => {
+                    app.select_next();
+                }
+            }
             app.refresh_preview();
         }
         KeyCode::Char('k') | KeyCode::Up => {
-            app.select_previous();
+            match app.focus {
+                FocusArea::Sessions => {
+                    if app.at_top_of_sessions() && !app.visible_agents().is_empty() {
+                        // Move focus to agents
+                        app.focus = FocusArea::Agents;
+                        app.select_agent_last();
+                    } else {
+                        app.select_previous();
+                    }
+                }
+                FocusArea::Agents => {
+                    app.select_agent_previous();
+                }
+            }
             app.refresh_preview();
         }
         KeyCode::Char('g') | KeyCode::Home => {
-            app.select_first();
+            match app.focus {
+                FocusArea::Agents => app.select_agent_first(),
+                FocusArea::Sessions => app.select_first(),
+            }
             app.refresh_preview();
         }
         KeyCode::Char('G') | KeyCode::End => {
-            app.select_last();
+            match app.focus {
+                FocusArea::Agents => app.select_agent_last(),
+                FocusArea::Sessions => app.select_last(),
+            }
             app.refresh_preview();
         }
 
-        KeyCode::Enter => app.attach_selected(),
-        KeyCode::Char('d') => app.delete_selected(),
-        KeyCode::Char('D') => app.delete_all(),
-        KeyCode::Char('x') => app.detach_selected(),
-        KeyCode::Char('X') => app.detach_all(),
+        KeyCode::Enter => match app.focus {
+            FocusArea::Agents => app.attach_selected_agent(),
+            FocusArea::Sessions => app.attach_selected(),
+        },
+        KeyCode::Char('d') => {
+            if app.focus == FocusArea::Sessions {
+                app.delete_selected();
+            }
+        }
+        KeyCode::Char('D') => {
+            if app.focus == FocusArea::Sessions {
+                app.delete_all();
+            }
+        }
+        KeyCode::Char('x') => {
+            if app.focus == FocusArea::Sessions {
+                app.detach_selected();
+            }
+        }
+        KeyCode::Char('X') => {
+            if app.focus == FocusArea::Sessions {
+                app.detach_all();
+            }
+        }
         KeyCode::Char('c') => app.mode = AppMode::SelectingDirectory,
 
-        // Window expansion
-        KeyCode::Char('l') | KeyCode::Right => app.expand_selected(),
+        // Window expansion (only from session focus)
+        KeyCode::Char('l') | KeyCode::Right => {
+            if app.focus == FocusArea::Sessions {
+                app.expand_selected();
+            }
+        }
 
         // Preview toggle
         KeyCode::Char('p') => app.toggle_preview(),
@@ -68,7 +123,7 @@ fn handle_normal_mode(app: &mut App, code: KeyCode, _matcher: &mut nucleo::Match
     }
 }
 
-/// Handles key events in filtering mode (session fuzzy search).
+// Handles key events in filtering mode (session fuzzy search).
 fn handle_filter_mode(app: &mut App, code: KeyCode, matcher: &mut nucleo::Matcher) {
     match code {
         KeyCode::Esc => {

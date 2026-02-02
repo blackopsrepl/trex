@@ -15,4 +15,5 @@ Cargo.lock
 
 *.code-workspace
 CLAUDE.md
+zoyd.toml
 .vscode/
