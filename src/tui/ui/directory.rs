@@ -34,7 +34,7 @@ pub fn render_directory_mode(frame: &mut Frame, app: &App) {
 /// Displays:
 /// - Title with current scan depth and filter input
 /// - Bottom title with filtered directory count
-fn render_header_dir(frame: &mut Frame, app: &App, area: Rect) {
+pub fn render_header_dir(frame: &mut Frame, app: &App, area: Rect) {
     let title = format!(
         " Select directory (depth: {}) > {} ",
         app.dir_scan_depth, app.dir_filter_input
@@ -59,7 +59,7 @@ fn render_header_dir(frame: &mut Frame, app: &App, area: Rect) {
 ///
 /// Selected item has a dark gray background.
 /// Empty state shows "No directories found" message.
-fn render_directory_list(frame: &mut Frame, app: &App, area: Rect) {
+pub fn render_directory_list(frame: &mut Frame, app: &App, area: Rect) {
     if app.dir_filtered_indices.is_empty() {
         let paragraph = Paragraph::new("No directories found")
             .style(Style::default().fg(Color::DarkGray))
@@ -119,7 +119,7 @@ fn render_directory_list(frame: &mut Frame, app: &App, area: Rect) {
 /// - +/-: increase/decrease scan depth
 /// - Enter: proceed to session naming
 /// - Esc: cancel and return to normal mode
-fn render_help_dir(frame: &mut Frame, area: Rect) {
+pub fn render_help_dir(frame: &mut Frame, area: Rect) {
     let help_text = "Type: filter | Tab: complete | +/-: depth | Enter: name session | Esc: cancel";
     let paragraph = Paragraph::new(help_text).style(Style::default().fg(Color::DarkGray));
 

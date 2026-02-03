@@ -34,7 +34,7 @@ pub fn render_naming_mode(frame: &mut Frame, app: &App) {
 ///
 /// Shows the naming prompt with the current input and a blinking cursor.
 /// The header has a magenta border to indicate the naming mode.
-fn render_header_naming(frame: &mut Frame, app: &App, area: Rect) {
+pub fn render_header_naming(frame: &mut Frame, app: &App, area: Rect) {
     let cursor = "_";
     let title = Line::from(vec![
         Span::styled(" Name session ", Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
@@ -59,7 +59,7 @@ fn render_header_naming(frame: &mut Frame, app: &App, area: Rect) {
 /// - The sanitized session name that will be used
 /// - Whether the name was sanitized (if different from input)
 /// - Instructions for creating or going back
-fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
+pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
     let path_display = app
         .selected_dir_path
         .as_ref()
@@ -119,7 +119,7 @@ fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
 /// - Type: Enter session name
 /// - Enter: Create the session
 /// - Esc: Go back to directory selection
-fn render_help_naming(frame: &mut Frame, area: Rect) {
+pub fn render_help_naming(frame: &mut Frame, area: Rect) {
     let help_text = "Type session name | Enter: create | Esc: back to directories";
     let paragraph = Paragraph::new(help_text).style(Style::default().fg(Color::DarkGray));
 
