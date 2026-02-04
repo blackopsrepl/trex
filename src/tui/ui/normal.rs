@@ -81,7 +81,7 @@ pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
         return;
     }
 
-    const COL_WIDTH: usize = 30;
+    const COL_WIDTH: usize = 38;
     const MAX_ROWS: usize = 5;
 
     let process_count = visible_agents.len();
