@@ -9,10 +9,13 @@ use ratatui::{
 
 use super::normal::render_agent_box;
 
-/// Renders the expanded session mode layout.
 pub fn render_expanded_mode(frame: &mut Frame, app: &App) {
     let visible_agents = app.visible_agents();
-    let agent_rows = if visible_agents.is_empty() { 1 } else { visible_agents.len().min(5) } as u16;
+    let agent_rows = if visible_agents.is_empty() {
+        1
+    } else {
+        visible_agents.len().min(5)
+    } as u16;
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -28,10 +31,13 @@ pub fn render_expanded_mode(frame: &mut Frame, app: &App) {
     render_help_expanded(frame, chunks[2]);
 }
 
-/// Renders the window list for expanded session mode.
 pub fn render_window_list(frame: &mut Frame, app: &App, area: Rect) {
     let session_name = app.expanded_session.as_deref().unwrap_or("session");
-    let title = format!(" {} - {} windows ", session_name, app.expanded_windows.len());
+    let title = format!(
+        " {} - {} windows ",
+        session_name,
+        app.expanded_windows.len()
+    );
 
     if app.expanded_windows.is_empty() {
         let paragraph = Paragraph::new("No windows found")
@@ -72,7 +78,10 @@ pub fn render_window_list(frame: &mut Frame, app: &App, area: Rect) {
                 Span::styled("  ", Style::default()),
                 Span::styled(active_icon, active_style),
                 Span::raw(" "),
-                Span::styled(format!("{}: ", window.index), Style::default().fg(Color::DarkGray)),
+                Span::styled(
+                    format!("{}: ", window.index),
+                    Style::default().fg(Color::DarkGray),
+                ),
                 Span::styled(&window.name, name_style),
                 Span::styled(
                     format!(" [{}]", window.current_command),
@@ -100,7 +109,6 @@ pub fn render_window_list(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(list, area);
 }
 
-/// Renders the help line for expanded session mode.
 pub fn render_help_expanded(frame: &mut Frame, area: Rect) {
     let help_text = "j/k: navigate | Enter: attach window | h/Esc: collapse | q: quit";
     let paragraph = Paragraph::new(help_text).style(Style::default().fg(Color::DarkGray));

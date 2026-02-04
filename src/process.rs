@@ -8,10 +8,10 @@ const AI_PROCESSES: &[&str] = &["claude", "opencode", "zoyd"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum ProcessState {
-    Running,  // 'R' - actively using CPU
-    Waiting,  // 'S' - sleeping/waiting for I/O or input
+    Running, // 'R' - actively using CPU
+    Waiting, // 'S' - sleeping/waiting for I/O or input
     #[default]
-    Unknown,  // Could not determine state
+    Unknown, // Could not determine state
 }
 
 #[derive(Debug, Clone)]
@@ -246,7 +246,6 @@ mod tests {
     fn test_get_tty_session_map() {
         // This should not panic even if tmux is not running
         let map = get_tty_session_map();
-        // Map might be empty if tmux isn't running, that's fine
         // Map might be empty if tmux isn't running, that's fine
         let _ = map.len();
     }

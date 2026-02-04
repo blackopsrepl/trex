@@ -1,10 +1,8 @@
-use crate::process::{find_ai_processes, process_exists, read_process_state, AiProcessInfo};
+use crate::process::{AiProcessInfo, find_ai_processes, process_exists, read_process_state};
 
 use super::{App, AppMode, SessionAction};
 
 impl App {
-    // ===== AI Process / Agent Methods =====
-
     // Returns the list of visible agents based on current mode.
     // In ExpandedSession mode or with preview, filters to agents in the selected/expanded session.
     pub fn visible_agents(&self) -> Vec<&AiProcessInfo> {

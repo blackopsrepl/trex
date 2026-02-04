@@ -10,8 +10,6 @@ pub fn parse_sessions(output: &str) -> Vec<TmuxSession> {
         .collect()
 }
 
-// Parses a single line of `tmux list-sessions` output.
-//
 // Expected format: `name|attached|windows|path|activity`
 fn parse_session_line(line: &str) -> Option<TmuxSession> {
     let parts: Vec<&str> = line.split('|').collect();

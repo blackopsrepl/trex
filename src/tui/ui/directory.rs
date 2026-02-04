@@ -1,19 +1,19 @@
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, List, ListItem, Paragraph},
-    Frame,
 };
 
 use crate::tui::app::App;
 
-/// Renders the directory selection mode layout.
-///
-/// This function creates a three-section vertical layout:
-/// - Top: Header with depth indicator and filter input
-/// - Middle: Directory list with selection highlighting
-/// - Bottom: Help line with available keybindings
+/* Renders the directory selection mode layout.
+ *
+ * This function creates a three-section vertical layout:
+ * - Top: Header with depth indicator and filter input
+ * - Middle: Directory list with selection highlighting
+ * - Bottom: Help line with available keybindings */
 pub fn render_directory_mode(frame: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -29,11 +29,11 @@ pub fn render_directory_mode(frame: &mut Frame, app: &App) {
     render_help_dir(frame, chunks[2]);
 }
 
-/// Renders the header bar for directory selection mode.
-///
-/// Displays:
-/// - Title with current scan depth and filter input
-/// - Bottom title with filtered directory count
+/* Renders the header bar for directory selection mode.
+ *
+ * Displays:
+ * - Title with current scan depth and filter input
+ * - Bottom title with filtered directory count */
 pub fn render_header_dir(frame: &mut Frame, app: &App, area: Rect) {
     let title = format!(
         " Select directory (depth: {}) > {} ",
@@ -51,14 +51,14 @@ pub fn render_header_dir(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(block, area);
 }
 
-/// Renders the directory list with selection highlighting.
-///
-/// Each directory item shows:
-/// - Directory name (highlighted in yellow if selected)
-/// - Full path in cyan within square brackets
-///
-/// Selected item has a dark gray background.
-/// Empty state shows "No directories found" message.
+/* Renders the directory list with selection highlighting.
+ *
+ * Each directory item shows:
+ * - Directory name (highlighted in yellow if selected)
+ * - Full path in cyan within square brackets
+ *
+ * Selected item has a dark gray background.
+ * Empty state shows "No directories found" message. */
 pub fn render_directory_list(frame: &mut Frame, app: &App, area: Rect) {
     if app.dir_filtered_indices.is_empty() {
         let paragraph = Paragraph::new("No directories found")
@@ -111,14 +111,14 @@ pub fn render_directory_list(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(list, area);
 }
 
-/// Renders the help line for directory selection mode.
-///
-/// Shows available keybindings:
-/// - Type: filter directories (fuzzy matching)
-/// - Tab: complete filter with selected directory path
-/// - +/-: increase/decrease scan depth
-/// - Enter: proceed to session naming
-/// - Esc: cancel and return to normal mode
+/* Renders the help line for directory selection mode.
+ *
+ * Shows available keybindings:
+ * - Type: filter directories (fuzzy matching)
+ * - Tab: complete filter with selected directory path
+ * - +/-: increase/decrease scan depth
+ * - Enter: proceed to session naming
+ * - Esc: cancel and return to normal mode */
 pub fn render_help_dir(frame: &mut Frame, area: Rect) {
     let help_text = "Type: filter | Tab: complete | +/-: depth | Enter: name session | Esc: cancel";
     let paragraph = Paragraph::new(help_text).style(Style::default().fg(Color::DarkGray));

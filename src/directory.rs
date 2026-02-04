@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-// Scan depth for directory discovery
+/* Scan depth for directory discovery */
 pub const MIN_DEPTH: u32 = 1;
 pub const MAX_DEPTH: u32 = 6;
 pub const DEFAULT_DEPTH: u32 = 3;
@@ -26,8 +26,8 @@ impl Directory {
         format!("{} {}", display_name, self.path.display())
     }
 
-    // Derives a session name from the directory's basename.
-    // Sanitizes the name for tmux compatibility (dots and colons are problematic).
+    /* Derives a session name from the directory's basename.
+     * Sanitizes the name for tmux compatibility (dots and colons are problematic). */
     pub fn session_name(&self) -> String {
         let name = self
             .path
@@ -38,8 +38,8 @@ impl Directory {
     }
 }
 
-// Sanitizes a session name for tmux compatibility.
-// Keeps alphanumeric chars, hyphens, and underscores; replaces others with underscores.
+/* Sanitizes a session name for tmux compatibility.
+ * Keeps alphanumeric chars, hyphens, and underscores; replaces others with underscores. */
 pub fn sanitize_session_name(name: &str) -> String {
     name.chars()
         .map(|c| {

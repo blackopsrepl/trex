@@ -1,5 +1,5 @@
-use crate::directory::Directory;
 use super::{App, AppMode};
+use crate::directory::Directory;
 
 impl App {
     // Moves selection to the next directory (wraps around).

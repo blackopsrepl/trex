@@ -5,18 +5,15 @@ use anyhow::{Result, bail};
 use std::os::unix::process::CommandExt;
 use std::process::Command;
 
-// Client for interacting with tmux via CLI commands.
 pub struct TmuxClient;
 
 impl TmuxClient {
-    // Verifies that tmux is installed and available in PATH.
     pub fn check_installed() -> Result<()> {
         which::which("tmux")
             .map_err(|_| anyhow::anyhow!("tmux is not installed or not in PATH"))?;
         Ok(())
     }
 
-    // Returns true if currently running inside a tmux session.
     pub fn is_inside_tmux() -> bool {
         std::env::var("TMUX").is_ok()
     }

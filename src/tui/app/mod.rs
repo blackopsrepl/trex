@@ -1,5 +1,5 @@
 use crate::directory::Directory;
-use crate::process::{find_ai_processes, AiProcessInfo};
+use crate::process::{AiProcessInfo, find_ai_processes};
 use crate::tmux::{TmuxSession, TmuxWindow};
 
 // Submodules
