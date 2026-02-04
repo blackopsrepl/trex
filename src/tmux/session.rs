@@ -10,7 +10,6 @@ pub enum ActivityLevel {
     Dormant, // > 30 minutes
 }
 
-// Represents a tmux session with its metadata.
 #[derive(Debug, Clone)]
 pub struct TmuxSession {
     pub name: String,
@@ -33,10 +32,7 @@ impl TmuxSession {
     // Returns the activity level based on time since last activity.
     pub fn activity_level(&self) -> Option<ActivityLevel> {
         let activity_ts = self.last_activity?;
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .ok()?
-            .as_secs();
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).ok()?.as_secs();
 
         let elapsed_secs = now.saturating_sub(activity_ts);
         let elapsed_mins = elapsed_secs / 60;
@@ -53,10 +49,7 @@ impl TmuxSession {
     // Returns a human-readable string for time since last activity.
     pub fn activity_ago_string(&self) -> Option<String> {
         let activity_ts = self.last_activity?;
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .ok()?
-            .as_secs();
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).ok()?.as_secs();
 
         let elapsed_secs = now.saturating_sub(activity_ts);
 

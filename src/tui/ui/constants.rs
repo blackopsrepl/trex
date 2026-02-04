@@ -43,12 +43,12 @@ pub const EYE_CHAR: char = 'o';
 
 // Green rainbow gradient - from dark to lime to bright (lolcat-style)
 pub const GREEN_GRADIENT: [(u8, u8, u8); 8] = [
-    (0, 60, 20),    // Dark forest
-    (0, 90, 30),    // Deep green
-    (0, 120, 40),   // Forest green
-    (20, 150, 50),  // Green
-    (40, 180, 60),  // Bright green
-    (80, 200, 80),  // Lime
-    (40, 180, 60),  // Bright green (back down)
-    (20, 150, 50),  // Green
+    (0, 60, 20),   // Dark forest
+    (0, 90, 30),   // Deep green
+    (0, 120, 40),  // Forest green
+    (20, 150, 50), // Green
+    (40, 180, 60), // Bright green
+    (80, 200, 80), // Lime
+    (40, 180, 60), // Bright green (back down)
+    (20, 150, 50), // Green
 ];

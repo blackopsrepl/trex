@@ -1,7 +1,6 @@
 use std::path::Path;
 use std::process::Command;
 
-// Git repository status for a session's working directory.
 #[derive(Debug, Clone, Default)]
 pub struct GitStatus {
     pub is_repo: bool,
@@ -12,7 +11,6 @@ pub struct GitStatus {
 }
 
 impl GitStatus {
-    // Fetches git status for the given path.
     pub fn for_path(path: &Path) -> Self {
         if !path.exists() {
             return Self::default();
@@ -42,7 +40,6 @@ impl GitStatus {
         }
     }
 
-    // Gets the current branch name.
     fn get_branch(path: &Path) -> Option<String> {
         let output = Command::new("git")
             .args([
@@ -70,7 +67,11 @@ impl GitStatus {
                     .output()
                     .ok()?;
                 if hash_output.status.success() {
-                    return Some(String::from_utf8_lossy(&hash_output.stdout).trim().to_string());
+                    return Some(
+                        String::from_utf8_lossy(&hash_output.stdout)
+                            .trim()
+                            .to_string(),
+                    );
                 }
                 None
             } else {
@@ -84,12 +85,7 @@ impl GitStatus {
     // Counts dirty files (modified, staged, untracked).
     fn get_dirty_count(path: &Path) -> u32 {
         let output = Command::new("git")
-            .args([
-                "-C",
-                &path.display().to_string(),
-                "status",
-                "--porcelain",
-            ])
+            .args(["-C", &path.display().to_string(), "status", "--porcelain"])
             .output()
             .ok();
 
@@ -105,7 +101,6 @@ impl GitStatus {
 
     // Gets commits ahead/behind upstream.
     fn get_ahead_behind(path: &Path) -> (u32, u32) {
-        // First check if there's an upstream branch
         let upstream = Command::new("git")
             .args([
                 "-C",

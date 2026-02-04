@@ -13,7 +13,11 @@ use super::constants::EMERALD_GREEN;
 
 pub fn render_normal_mode(frame: &mut Frame, app: &App) {
     let visible_agents = app.visible_agents();
-    let agent_rows = if visible_agents.is_empty() { 1 } else { visible_agents.len().min(5) } as u16;
+    let agent_rows = if visible_agents.is_empty() {
+        1
+    } else {
+        visible_agents.len().min(5)
+    } as u16;
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -75,8 +79,11 @@ pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
 
     // Handle empty state
     if visible_agents.is_empty() {
-        let empty_text = Paragraph::new(" No agents running")
-            .style(Style::default().fg(Color::DarkGray).add_modifier(Modifier::ITALIC));
+        let empty_text = Paragraph::new(" No agents running").style(
+            Style::default()
+                .fg(Color::DarkGray)
+                .add_modifier(Modifier::ITALIC),
+        );
         frame.render_widget(empty_text, inner);
         return;
     }
@@ -110,7 +117,11 @@ pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
                 };
 
                 // Tmux indicator
-                let tmux_icon = if proc.tmux_session.is_some() { "●" } else { "○" };
+                let tmux_icon = if proc.tmux_session.is_some() {
+                    "●"
+                } else {
+                    "○"
+                };
 
                 // Project name (truncated)
                 let display_name = if proc.project_name.len() > 12 {
@@ -134,14 +145,20 @@ pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
 
                 // For activity icon, we need separate spans to color it
                 spans.push(Span::styled(" ", text_style));
-                spans.push(Span::styled(activity_icon, Style::default().fg(activity_color)));
+                spans.push(Span::styled(
+                    activity_icon,
+                    Style::default().fg(activity_color),
+                ));
 
                 // Build the main display text with optional child AI names
                 let main_text = if proc.child_ai_names.is_empty() {
                     format!(" {}:{} {}", proc.process_name, display_name, tmux_icon)
                 } else {
                     let child_names = proc.child_ai_names.join(", ");
-                    format!(" {}:{} {} ({})", proc.process_name, display_name, tmux_icon, child_names)
+                    format!(
+                        " {}:{} {} ({})",
+                        proc.process_name, display_name, tmux_icon, child_names
+                    )
                 };
 
                 spans.push(Span::styled(main_text.clone(), text_style));
@@ -173,17 +190,18 @@ pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
             width: more_width,
             height: 1,
         };
-        let more_paragraph =
-            Paragraph::new(more_text).style(Style::default().fg(Color::DarkGray));
+        let more_paragraph = Paragraph::new(more_text).style(Style::default().fg(Color::DarkGray));
         frame.render_widget(more_paragraph, more_area);
     }
 }
 
-// Renders the session list with selection highlighting.
 pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
-    // Title includes session count and filter input if filtering
     let title = match app.mode {
-        AppMode::Filtering => format!(" Sessions ({}) > {} ", app.filtered_indices.len(), app.filter_input),
+        AppMode::Filtering => format!(
+            " Sessions ({}) > {} ",
+            app.filtered_indices.len(),
+            app.filter_input
+        ),
         _ => format!(" Sessions ({}) ", app.sessions.len()),
     };
 
@@ -268,7 +286,9 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
                 Span::styled(
                     attached_indicator,
                     if session.attached {
-                        Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)
+                        Style::default()
+                            .fg(Color::Green)
+                            .add_modifier(Modifier::BOLD)
                     } else {
                         Style::default().fg(Color::DarkGray)
                     },
@@ -304,7 +324,6 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(list, area);
 }
 
-// Renders the preview panel showing captured pane content.
 pub fn render_preview(frame: &mut Frame, app: &App, area: Rect) {
     let session_name = app
         .selected_session()
@@ -337,7 +356,6 @@ pub fn render_preview(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(paragraph, area);
 }
 
-// Renders the help line showing available keybindings.
 pub fn render_help(frame: &mut Frame, app: &App, area: Rect) {
     let help_text = match app.mode {
         AppMode::Normal => {

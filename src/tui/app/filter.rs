@@ -1,7 +1,6 @@
 use super::{App, AppMode};
 
 impl App {
-    /// Applies fuzzy filtering to the session list based on current input.
     pub fn apply_filter(&mut self, matcher: &mut nucleo::Matcher) {
         if self.filter_input.is_empty() {
             self.filtered_indices = (0..self.sessions.len()).collect();

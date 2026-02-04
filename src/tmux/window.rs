@@ -1,4 +1,3 @@
-// Represents a tmux window within a session.
 #[derive(Debug, Clone)]
 pub struct TmuxWindow {
     pub index: u32,

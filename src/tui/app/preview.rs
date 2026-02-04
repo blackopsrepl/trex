@@ -3,7 +3,6 @@ use crate::tmux::TmuxClient;
 use super::App;
 
 impl App {
-    // Toggles the preview panel.
     pub fn toggle_preview(&mut self) {
         self.show_preview = !self.show_preview;
         if self.show_preview {
@@ -13,7 +12,6 @@ impl App {
         }
     }
 
-    // Refreshes the preview for the currently selected session.
     pub fn refresh_preview(&mut self) {
         if !self.show_preview {
             return;

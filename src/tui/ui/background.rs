@@ -1,14 +1,13 @@
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
     widgets::Paragraph,
-    Frame,
 };
 
 use super::constants::{EYE_CHAR, EYE_LINE, GREEN_GRADIENT, TREX_ASCII};
 
-/// Renders the decorative T-Rex background in the bottom-right corner.
 pub fn render_background_trex(frame: &mut Frame, area: Rect) {
     // Only render if terminal is large enough
     if area.width < 80 || area.height < 25 {
@@ -21,6 +20,7 @@ pub fn render_background_trex(frame: &mut Frame, area: Rect) {
         .map(|(idx, line)| {
             let (r, g, b) = GREEN_GRADIENT[idx % GREEN_GRADIENT.len()];
             let green_style = Style::default().fg(Color::Rgb(r, g, b));
+
             // Reddish eye with slight green tint
             let eye_style = Style::default().fg(Color::Rgb(220, 50, 30));
 

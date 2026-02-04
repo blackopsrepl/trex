@@ -8,13 +8,13 @@ use ratatui::{
 
 use crate::tui::app::App;
 
-/// Renders the session naming mode layout.
-///
-/// This mode is entered after the user selects a directory for creating a new session.
-/// It consists of three sections:
-/// - Header: Shows naming prompt and current input with cursor
-/// - Preview: Shows directory path and sanitized session name
-/// - Help: Shows available keybindings
+/* Renders the session naming mode layout.
+ *
+ * This mode is entered after the user selects a directory for creating a new session.
+ * It consists of three sections:
+ * - Header: Shows naming prompt and current input with cursor
+ * - Preview: Shows directory path and sanitized session name
+ * - Help: Shows available keybindings */
 pub fn render_naming_mode(frame: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -30,17 +30,32 @@ pub fn render_naming_mode(frame: &mut Frame, app: &App) {
     render_help_naming(frame, chunks[2]);
 }
 
-/// Renders the header for session naming mode.
-///
-/// Shows the naming prompt with the current input and a blinking cursor.
-/// The header has a magenta border to indicate the naming mode.
+/* Renders the header for session naming mode.
+ *
+ * Shows the naming prompt with the current input and a blinking cursor.
+ * The header has a magenta border to indicate the naming mode. */
 pub fn render_header_naming(frame: &mut Frame, app: &App, area: Rect) {
     let cursor = "_";
     let title = Line::from(vec![
-        Span::styled(" Name session ", Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            " Name session ",
+            Style::default()
+                .fg(Color::Magenta)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("> ", Style::default().fg(Color::Magenta)),
-        Span::styled(&app.session_name_input, Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
-        Span::styled(cursor, Style::default().fg(Color::Magenta).add_modifier(Modifier::RAPID_BLINK)),
+        Span::styled(
+            &app.session_name_input,
+            Style::default()
+                .fg(Color::White)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            cursor,
+            Style::default()
+                .fg(Color::Magenta)
+                .add_modifier(Modifier::RAPID_BLINK),
+        ),
         Span::raw(" "),
     ]);
 
@@ -52,13 +67,13 @@ pub fn render_header_naming(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(block, area);
 }
 
-/// Renders the preview panel for session naming mode.
-///
-/// Shows:
-/// - The selected directory path (with home directory abbreviated to ~)
-/// - The sanitized session name that will be used
-/// - Whether the name was sanitized (if different from input)
-/// - Instructions for creating or going back
+/* Renders the preview panel for session naming mode.
+ *
+ * Shows:
+ * - The selected directory path (with home directory abbreviated to ~)
+ * - The sanitized session name that will be used
+ * - Whether the name was sanitized (if different from input)
+ * - Instructions for creating or going back */
 pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
     let path_display = app
         .selected_dir_path
@@ -91,9 +106,19 @@ pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
         Line::from(""),
         Line::from(vec![
             Span::styled("    Session    ", Style::default().fg(Color::DarkGray)),
-            Span::styled(&sanitized_name, Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                &sanitized_name,
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
             if name_changed {
-                Span::styled(" (sanitized)", Style::default().fg(Color::DarkGray).add_modifier(Modifier::ITALIC))
+                Span::styled(
+                    " (sanitized)",
+                    Style::default()
+                        .fg(Color::DarkGray)
+                        .add_modifier(Modifier::ITALIC),
+                )
             } else {
                 Span::raw("")
             },
@@ -101,9 +126,17 @@ pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
         Line::from(""),
         Line::from(vec![
             Span::styled("    ", Style::default()),
-            Span::styled("Enter", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "Enter",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled(" to create  ", Style::default().fg(Color::DarkGray)),
-            Span::styled("Esc", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "Esc",
+                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+            ),
             Span::styled(" to go back", Style::default().fg(Color::DarkGray)),
         ]),
     ];
@@ -113,12 +146,12 @@ pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(paragraph, area);
 }
 
-/// Renders the help line for session naming mode.
-///
-/// Shows available keybindings:
-/// - Type: Enter session name
-/// - Enter: Create the session
-/// - Esc: Go back to directory selection
+/* Renders the help line for session naming mode.
+ *
+ * Shows available keybindings:
+ * - Type: Enter session name
+ * - Enter: Create the session
+ * - Esc: Go back to directory selection */
 pub fn render_help_naming(frame: &mut Frame, area: Rect) {
     let help_text = "Type session name | Enter: create | Esc: back to directories";
     let paragraph = Paragraph::new(help_text).style(Style::default().fg(Color::DarkGray));
