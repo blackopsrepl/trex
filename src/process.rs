@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
@@ -48,6 +48,9 @@ pub fn find_ai_processes() -> Result<Vec<AiProcessInfo>> {
         pid_to_index.insert(process.pid, idx);
     }
 
+    // Track which processes are children of other AI processes
+    let mut child_pids = HashSet::new();
+
     // Check each process to see if its parent is also an AI process
     for i in 0..processes.len() {
         let child_pid = processes[i].pid;
@@ -59,9 +62,14 @@ pub fn find_ai_processes() -> Result<Vec<AiProcessInfo>> {
                 // Add this child's name to the parent's child_ai_names list
                 // Use only the short form (process_name without project name)
                 processes[parent_idx].child_ai_names.push(child_name);
+                // Mark this process as a child
+                child_pids.insert(child_pid);
             }
         }
     }
+
+    // Third pass: filter out child AI processes, keeping only root processes
+    processes.retain(|process| !child_pids.contains(&process.pid));
 
     Ok(processes)
 }
