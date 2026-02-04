@@ -135,13 +135,19 @@ pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
                 // For activity icon, we need separate spans to color it
                 spans.push(Span::styled(" ", text_style));
                 spans.push(Span::styled(activity_icon, Style::default().fg(activity_color)));
-                spans.push(Span::styled(
-                    format!(" {}:{} {}", proc.process_name, display_name, tmux_icon),
-                    text_style,
-                ));
+
+                // Build the main display text with optional child AI names
+                let main_text = if proc.child_ai_names.is_empty() {
+                    format!(" {}:{} {}", proc.process_name, display_name, tmux_icon)
+                } else {
+                    let child_names = proc.child_ai_names.join(", ");
+                    format!(" {}:{} {} ({})", proc.process_name, display_name, tmux_icon, child_names)
+                };
+
+                spans.push(Span::styled(main_text.clone(), text_style));
 
                 // Add padding to reach column width
-                let current_len = 1 + activity_icon.chars().count() + 1 + proc.process_name.len() + 1 + display_name.len() + 1 + tmux_icon.chars().count();
+                let current_len = 1 + activity_icon.chars().count() + main_text.chars().count();
                 if current_len < COL_WIDTH {
                     spans.push(Span::raw(" ".repeat(COL_WIDTH - current_len)));
                 }
