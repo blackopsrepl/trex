@@ -28,6 +28,7 @@ pub fn find_ai_processes() -> Result<Vec<AiProcessInfo>> {
     let tty_session_map = get_tty_session_map();
     let mut processes = Vec::new();
 
+    // First pass: collect all AI processes
     for entry in fs::read_dir("/proc")? {
         let entry = entry?;
         let file_name = entry.file_name();
@@ -37,6 +38,28 @@ pub fn find_ai_processes() -> Result<Vec<AiProcessInfo>> {
             && let Ok(info) = get_process_info(pid, &tty_session_map)
         {
             processes.push(info);
+        }
+    }
+
+    // Second pass: detect parent-child relationships among AI processes
+    // Build a map of PID -> process index for quick lookup
+    let mut pid_to_index: HashMap<u32, usize> = HashMap::new();
+    for (idx, process) in processes.iter().enumerate() {
+        pid_to_index.insert(process.pid, idx);
+    }
+
+    // Check each process to see if its parent is also an AI process
+    for i in 0..processes.len() {
+        let child_pid = processes[i].pid;
+        let child_name = processes[i].process_name.clone();
+
+        if let Ok(Some(parent_pid)) = get_ppid(child_pid) {
+            // Check if the parent is also an AI process
+            if let Some(&parent_idx) = pid_to_index.get(&parent_pid) {
+                // Add this child's name to the parent's child_ai_names list
+                // Use only the short form (process_name without project name)
+                processes[parent_idx].child_ai_names.push(child_name);
+            }
         }
     }
 
