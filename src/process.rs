@@ -21,6 +21,7 @@ pub struct AiProcessInfo {
     pub tmux_session: Option<String>,
     pub activity_state: ProcessState,
     pub pid: u32,
+    pub child_ai_names: Vec<String>,
 }
 
 pub fn find_ai_processes() -> Result<Vec<AiProcessInfo>> {
