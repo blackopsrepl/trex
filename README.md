@@ -162,7 +162,7 @@ The top section displays all running AI coding assistants with real-time status:
 
 ```
 ┌─ RUNNING AGENTS ────────────────────────────────────────┐
-│ ▶ claude:my-project ● (claude)  ⏸ opencode:api-server ●│
+│ ▶ claude:my-project ● (claude)  ⏸ opencode:api-server ● │
 │ ⏸ zoyd:frontend ●                                       │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -185,9 +185,9 @@ Each session in the list shows rich information at a glance:
 
 ```
 ┌─ Sessions (3) ──────────────────────────────────────────┐
-│ ●* api-server (3 win) 2m  main +3 ↑2  ~/projects/api   │
-│ ○  frontend (2 win) 15m  feature/auth  ~/work/frontend │
-│ ◌  old-project (1 win) 2h  ~/archive/old               │
+│ ●* api-server (3 win) 2m  main +3 ↑2  ~/projects/api    │
+│ ○  frontend (2 win) 15m  feature/auth  ~/work/frontend  │
+│ ◌  old-project (1 win) 2h  ~/archive/old                │
 └─────────────────────────────────────────────────────────┘
 ```
 
