@@ -4,7 +4,7 @@ A fast, minimal tmux session manager with fuzzy finding, an interactive TUI, and
 
 ## Features
 
-- **AI Agent Dashboard** - Monitor running AI coding assistants (Claude, OpenCode, Zoyd) with real-time activity indicators
+- **AI Agent Dashboard** - Monitor running AI coding assistants (Claude, OpenCode, Zoyd) with real-time activity indicators and hierarchical child agent display
 - **Interactive TUI** - Browse and manage tmux sessions with a clean, responsive interface
 - **Fuzzy Finding** - Quickly filter sessions and directories with fuzzy search powered by `nucleo`
 - **Smart Session Selection** - Automatically preselects sessions matching your current directory
@@ -162,7 +162,7 @@ The top section displays all running AI coding assistants with real-time status:
 
 ```
 ┌─ RUNNING AGENTS ────────────────────────────────────────┐
-│ ▶ claude:my-project ●    ⏸ opencode:api-server ●       │
+│ ▶ claude:my-project ● (claude)  ⏸ opencode:api-server ●│
 │ ⏸ zoyd:frontend ●                                       │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -171,7 +171,9 @@ The top section displays all running AI coding assistants with real-time status:
 - **Tmux indicators**: `●` in a tmux session, `○` standalone terminal
 - **Process name**: The AI assistant (claude, opencode, zoyd)
 - **Project name**: Derived from the process's working directory
+- **Child agents**: When an AI spawns other AI processes (e.g., Claude spawning sub-agents), child names are shown in parentheses after the tmux icon
 - **Real-time updates**: Activity state refreshes every 100ms, process list every 2 seconds
+- **Hierarchy-aware**: Only root AI processes are shown; child processes are grouped under their parent
 
 Navigate to the agent box by pressing `k` from the top of the session list. Press `Enter` on any agent to jump directly to its tmux session.
 
