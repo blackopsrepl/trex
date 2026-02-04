@@ -88,6 +88,7 @@ fn get_process_info(pid: u32, tty_session_map: &HashMap<String, String>) -> Resu
         tmux_session,
         activity_state,
         pid,
+        child_ai_names: Vec::new(),
     })
 }
 
