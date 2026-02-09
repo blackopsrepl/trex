@@ -1,32 +1,14 @@
 use ratatui::{
-    Frame,
     layout::Rect,
-    style::{Color, Style},
+    style::Style,
     text::{Line, Span},
     widgets::Paragraph,
+    Frame,
 };
 
 use super::constants::{EYE_CHAR, EYE_LINE, TREX_ASCII};
+use crate::theme::{extract_rgb, lerp_rgb};
 use crate::tui::app::App;
-
-// Generate a color gradient based on a base color
-fn generate_gradient(base_color: Color, steps: usize) -> Vec<Color> {
-    let (r, g, b) = match base_color {
-        Color::Rgb(r, g, b) => (r as f32, g as f32, b as f32),
-        _ => (80.0, 200.0, 120.0), // fallback
-    };
-
-    (0..steps)
-        .map(|i| {
-            let factor = 0.5 + (i as f32 / steps as f32) * 0.5; // 50% to 100% intensity
-            Color::Rgb(
-                (r * factor) as u8,
-                (g * factor) as u8,
-                (b * factor) as u8,
-            )
-        })
-        .collect()
-}
 
 pub fn render_background_trex(frame: &mut Frame, app: &App, area: Rect) {
     // Only render if terminal is large enough
@@ -34,18 +16,31 @@ pub fn render_background_trex(frame: &mut Frame, app: &App, area: Rect) {
         return;
     }
 
-    let gradient = generate_gradient(app.theme.primary, 8);
+    // Gradient flows from primary (head) to warning (feet):
+    // jungle green canopy fading to warm amber ground.
+    // With Omarchy these are the theme's actual hex colors;
+    // without, the fallbacks give a jungle green-to-amber tone.
+    let top = extract_rgb(app.theme.primary, (80.0, 200.0, 120.0));
+    let bottom = extract_rgb(app.theme.warning, (255.0, 200.0, 30.0));
+
+    let total_lines = TREX_ASCII.lines().count().max(1);
 
     let lines: Vec<Line> = TREX_ASCII
         .lines()
         .enumerate()
         .map(|(idx, line)| {
-            let base_style = Style::default().fg(gradient[idx % gradient.len()]);
+            let t = idx as f64 / (total_lines - 1).max(1) as f64;
+            // Dim to 40%-80% intensity so the art stays subtle behind the UI
+            let dim = 0.4 + t * 0.4;
+            let blended = lerp_rgb(top, bottom, t);
+            let (r, g, b) = extract_rgb(blended, (80.0, 200.0, 120.0));
+            let dimmed =
+                ratatui::style::Color::Rgb((r * dim) as u8, (g * dim) as u8, (b * dim) as u8);
+            let base_style = Style::default().fg(dimmed);
 
-            // Eye uses the error color (typically red)
+            // Eye uses the error color
             let eye_style = Style::default().fg(app.theme.error);
 
-            // Build spans with per-character coloring for the eye
             let spans: Vec<Span> = line
                 .chars()
                 .map(|c| {

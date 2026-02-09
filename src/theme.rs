@@ -71,7 +71,7 @@ impl Default for ThemeColors {
 }
 
 // Extract RGB components from a Color, using a fallback for ANSI named colors
-fn extract_rgb(color: Color, fallback: (f64, f64, f64)) -> (f64, f64, f64) {
+pub(crate) fn extract_rgb(color: Color, fallback: (f64, f64, f64)) -> (f64, f64, f64) {
     match color {
         Color::Rgb(r, g, b) => (r as f64, g as f64, b as f64),
         _ => fallback,
@@ -79,7 +79,7 @@ fn extract_rgb(color: Color, fallback: (f64, f64, f64)) -> (f64, f64, f64) {
 }
 
 // Linearly interpolate between two RGB triples
-fn lerp_rgb(a: (f64, f64, f64), b: (f64, f64, f64), t: f64) -> Color {
+pub(crate) fn lerp_rgb(a: (f64, f64, f64), b: (f64, f64, f64), t: f64) -> Color {
     Color::Rgb(
         (a.0 + (b.0 - a.0) * t) as u8,
         (a.1 + (b.1 - a.1) * t) as u8,
