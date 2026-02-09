@@ -104,12 +104,12 @@ fn scan_directories(
 
     if let Ok(entries) = std::fs::read_dir(path) {
         for entry in entries.flatten() {
-            if let Ok(metadata) = entry.metadata() {
-                if metadata.is_symlink() {
+            if let Ok(file_type) = entry.file_type() {
+                if file_type.is_symlink() {
                     continue;
                 }
 
-                if metadata.is_dir()
+                if file_type.is_dir()
                     && let Ok(canonical) = std::fs::canonicalize(entry.path())
                 {
                     if seen.insert(canonical.clone()) {
