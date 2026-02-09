@@ -553,7 +553,7 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
                 let cpu_sparkline = Sparkline::default()
                     .block(Block::default())
                     .data(&session.cpu_history)
-                    .style(Style::default().fg(cpu_color));
+                    .style(Style::default().fg(cpu_color).bg(app.theme.bg_primary));
 
                 let cpu_spark_area = Rect {
                     x: inner.x,
@@ -569,7 +569,7 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
                 let mem_sparkline = Sparkline::default()
                     .block(Block::default())
                     .data(&session.mem_history)
-                    .style(Style::default().fg(mem_color));
+                    .style(Style::default().fg(mem_color).bg(app.theme.bg_primary));
 
                 let mem_spark_area = Rect {
                     x: inner.x + inner.width / 2,
