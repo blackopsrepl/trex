@@ -1,4 +1,5 @@
 use crate::git::GitStatus;
+use crate::sysinfo::SessionStats;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -18,6 +19,9 @@ pub struct TmuxSession {
     pub path: Option<PathBuf>,
     pub last_activity: Option<u64>,
     pub git_status: Option<GitStatus>,
+    pub stats: Option<SessionStats>,
+    pub cpu_history: Vec<u64>,  // Last 20 samples for sparkline
+    pub mem_history: Vec<u64>,  // Last 20 samples for sparkline
 }
 
 impl TmuxSession {

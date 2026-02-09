@@ -35,6 +35,9 @@ fn parse_session_line(line: &str) -> Option<TmuxSession> {
         path,
         last_activity,
         git_status: None,
+        stats: None,
+        cpu_history: Vec::new(),
+        mem_history: Vec::new(),
     })
 }
 

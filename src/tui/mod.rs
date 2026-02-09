@@ -51,8 +51,10 @@ fn run_app(
 ) -> Result<()> {
     let mut last_state_refresh = Instant::now();
     let mut last_full_rescan = Instant::now();
+    let mut last_stats_refresh = Instant::now();
 
     loop {
+        app.tick = app.tick.wrapping_add(1);
         terminal.draw(|frame| render(frame, app))?;
 
         if event::poll(Duration::from_millis(100))?
@@ -65,6 +67,12 @@ fn run_app(
         if last_state_refresh.elapsed() >= Duration::from_millis(100) {
             app.refresh_ai_process_states();
             last_state_refresh = Instant::now();
+        }
+
+        // Refresh session stats every second (CPU/memory usage)
+        if last_stats_refresh.elapsed() >= Duration::from_secs(1) {
+            app.refresh_session_stats();
+            last_stats_refresh = Instant::now();
         }
 
         // Full rescan for new/exited processes every 2 seconds

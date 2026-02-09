@@ -1,5 +1,6 @@
 use crate::directory::Directory;
 use crate::process::{AiProcessInfo, find_ai_processes};
+use crate::theme::ThemeColors;
 use crate::tmux::{TmuxSession, TmuxWindow};
 
 // Submodules
@@ -19,6 +20,8 @@ pub enum AppMode {
     SelectingDirectory,
     NamingSession,
     ExpandedSession,
+    BarChartView,
+    StatsOverlay,
 }
 
 // Which UI area has keyboard focus.
@@ -76,6 +79,12 @@ pub struct App {
     // Focus tracking for agent/session navigation
     pub focus: FocusArea,
     pub agent_selected_index: usize,
+
+    // Theme colors
+    pub theme: ThemeColors,
+
+    // Tick counter for animations (incremented each render cycle)
+    pub tick: u64,
 }
 
 impl App {
@@ -93,6 +102,7 @@ impl App {
         let dir_filtered_indices: Vec<usize> = (0..directories.len()).collect();
 
         let ai_processes = find_ai_processes().unwrap_or_default();
+        let theme = crate::theme::load_theme();
 
         Self {
             sessions,
@@ -117,6 +127,8 @@ impl App {
             ai_processes,
             focus: FocusArea::default(),
             agent_selected_index: 0,
+            theme,
+            tick: 0,
         }
     }
 }
