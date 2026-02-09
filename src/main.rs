@@ -1,6 +1,9 @@
 mod directory;
 mod git;
+mod health;
 mod process;
+mod sysinfo;
+mod theme;
 mod tmux;
 mod tui;
 

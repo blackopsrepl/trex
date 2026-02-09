@@ -80,4 +80,28 @@ impl App {
     pub fn at_top_of_sessions(&self) -> bool {
         self.selected_index == 0
     }
+
+    // Refreshes system stats for all sessions.
+    pub fn refresh_session_stats(&mut self) {
+        const MAX_HISTORY: usize = 20;
+
+        for session in &mut self.sessions {
+            if let Ok(stats) = crate::sysinfo::get_session_stats(&session.name) {
+                // Update current stats
+                session.stats = Some(stats.clone());
+
+                // Update CPU history (convert f64 to u64 for sparkline)
+                session.cpu_history.push(stats.cpu_percent as u64);
+                if session.cpu_history.len() > MAX_HISTORY {
+                    session.cpu_history.remove(0);
+                }
+
+                // Update memory history
+                session.mem_history.push(stats.mem_mb);
+                if session.mem_history.len() > MAX_HISTORY {
+                    session.mem_history.remove(0);
+                }
+            }
+        }
+    }
 }

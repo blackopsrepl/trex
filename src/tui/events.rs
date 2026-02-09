@@ -24,6 +24,8 @@ pub fn handle_key(
         AppMode::SelectingDirectory => handle_dir_mode(app, code, matcher),
         AppMode::NamingSession => handle_naming_mode(app, code),
         AppMode::ExpandedSession => handle_expanded_mode(app, code),
+        AppMode::BarChartView => handle_barchart_mode(app, code),
+        AppMode::StatsOverlay => handle_stats_overlay_mode(app, code),
     }
 }
 
@@ -116,6 +118,12 @@ fn handle_normal_mode(app: &mut App, code: KeyCode, _matcher: &mut nucleo::Match
         KeyCode::Char('p') => app.toggle_preview(),
 
         KeyCode::Char('/') => app.mode = AppMode::Filtering,
+
+        // Bar chart view toggle
+        KeyCode::Char('b') => app.mode = AppMode::BarChartView,
+
+        // Stats overlay toggle
+        KeyCode::Char('s') => app.mode = AppMode::StatsOverlay,
 
         KeyCode::Esc | KeyCode::Char('q') => app.should_quit = true,
 
@@ -212,6 +220,28 @@ fn handle_expanded_mode(app: &mut App, code: KeyCode) {
 
         KeyCode::Char('q') => app.should_quit = true,
 
+        _ => {}
+    }
+}
+
+// Handles key events in bar chart view mode.
+fn handle_barchart_mode(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Char('b') | KeyCode::Esc => {
+            app.mode = AppMode::Normal;
+        }
+        KeyCode::Char('q') => app.should_quit = true,
+        _ => {}
+    }
+}
+
+// Handles key events in stats overlay mode.
+fn handle_stats_overlay_mode(app: &mut App, code: KeyCode) {
+    match code {
+        KeyCode::Char('s') | KeyCode::Esc => {
+            app.mode = AppMode::Normal;
+        }
+        KeyCode::Char('q') => app.should_quit = true,
         _ => {}
     }
 }

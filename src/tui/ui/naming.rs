@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
 };
@@ -27,7 +27,7 @@ pub fn render_naming_mode(frame: &mut Frame, app: &App) {
 
     render_header_naming(frame, app, chunks[0]);
     render_naming_preview(frame, app, chunks[1]);
-    render_help_naming(frame, chunks[2]);
+    render_help_naming(frame, app, chunks[2]);
 }
 
 /* Renders the header for session naming mode.
@@ -40,20 +40,20 @@ pub fn render_header_naming(frame: &mut Frame, app: &App, area: Rect) {
         Span::styled(
             " Name session ",
             Style::default()
-                .fg(Color::Magenta)
+                .fg(app.theme.secondary)
                 .add_modifier(Modifier::BOLD),
         ),
-        Span::styled("> ", Style::default().fg(Color::Magenta)),
+        Span::styled("> ", Style::default().fg(app.theme.secondary)),
         Span::styled(
             &app.session_name_input,
             Style::default()
-                .fg(Color::White)
+                .fg(app.theme.text)
                 .add_modifier(Modifier::BOLD),
         ),
         Span::styled(
             cursor,
             Style::default()
-                .fg(Color::Magenta)
+                .fg(app.theme.secondary)
                 .add_modifier(Modifier::RAPID_BLINK),
         ),
         Span::raw(" "),
@@ -61,7 +61,7 @@ pub fn render_header_naming(frame: &mut Frame, app: &App, area: Rect) {
 
     let block = Block::default()
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Magenta))
+        .border_style(Style::default().fg(app.theme.secondary))
         .title(title);
 
     frame.render_widget(block, area);
@@ -100,23 +100,23 @@ pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
     let lines = vec![
         Line::from(""),
         Line::from(vec![
-            Span::styled("    Directory  ", Style::default().fg(Color::DarkGray)),
-            Span::styled(&path_display, Style::default().fg(Color::Cyan)),
+            Span::styled("    Directory  ", Style::default().fg(app.theme.text_dim)),
+            Span::styled(&path_display, Style::default().fg(app.theme.info)),
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("    Session    ", Style::default().fg(Color::DarkGray)),
+            Span::styled("    Session    ", Style::default().fg(app.theme.text_dim)),
             Span::styled(
                 &sanitized_name,
                 Style::default()
-                    .fg(Color::Yellow)
+                    .fg(app.theme.warning)
                     .add_modifier(Modifier::BOLD),
             ),
             if name_changed {
                 Span::styled(
                     " (sanitized)",
                     Style::default()
-                        .fg(Color::DarkGray)
+                        .fg(app.theme.text_dim)
                         .add_modifier(Modifier::ITALIC),
                 )
             } else {
@@ -129,15 +129,15 @@ pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
             Span::styled(
                 "Enter",
                 Style::default()
-                    .fg(Color::Green)
+                    .fg(app.theme.border)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::styled(" to create  ", Style::default().fg(Color::DarkGray)),
+            Span::styled(" to create  ", Style::default().fg(app.theme.text_dim)),
             Span::styled(
                 "Esc",
-                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+                Style::default().fg(app.theme.error).add_modifier(Modifier::BOLD),
             ),
-            Span::styled(" to go back", Style::default().fg(Color::DarkGray)),
+            Span::styled(" to go back", Style::default().fg(app.theme.text_dim)),
         ]),
     ];
 
@@ -152,9 +152,9 @@ pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
  * - Type: Enter session name
  * - Enter: Create the session
  * - Esc: Go back to directory selection */
-pub fn render_help_naming(frame: &mut Frame, area: Rect) {
+pub fn render_help_naming(frame: &mut Frame, app: &App, area: Rect) {
     let help_text = "Type session name | Enter: create | Esc: back to directories";
-    let paragraph = Paragraph::new(help_text).style(Style::default().fg(Color::DarkGray));
+    let paragraph = Paragraph::new(help_text).style(Style::default().fg(app.theme.text_dim));
 
     frame.render_widget(paragraph, area);
 }

@@ -1,0 +1,112 @@
+use ratatui::style::Color;
+use serde::Deserialize;
+use std::fs;
+use std::path::PathBuf;
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct OmarchyTheme {
+    accent: String,
+    cursor: String,
+    foreground: String,
+    background: String,
+    selection_foreground: String,
+    selection_background: String,
+    color0: String,
+    color1: String,
+    color2: String,
+    color3: String,
+    color4: String,
+    color5: String,
+    color6: String,
+    color7: String,
+    color8: String,
+    color9: String,
+    color10: String,
+    color11: String,
+    color12: String,
+    color13: String,
+    color14: String,
+    color15: String,
+}
+
+pub struct ThemeColors {
+    pub primary: Color,        // Main accent/selection color
+    pub secondary: Color,      // Secondary accent
+    pub text: Color,           // Normal text
+    pub text_dim: Color,       // Dimmed/secondary text
+    pub border: Color,         // Borders
+    pub success: Color,        // Green/success
+    pub warning: Color,        // Yellow/warning
+    pub error: Color,          // Red/error
+    pub info: Color,           // Blue/info
+    pub highlight: Color,      // Highlight/selection background
+    pub bg_primary: Color,     // Primary background (bars, panels)
+    pub bg_highlight: Color,   // Highlighted selection background
+    pub bg_overlay: Color,     // Overlay/modal background
+}
+
+impl Default for ThemeColors {
+    fn default() -> Self {
+        // Fallback to trex's original green theme
+        ThemeColors {
+            primary: Color::Rgb(80, 200, 120),
+            secondary: Color::Rgb(40, 180, 60),
+            text: Color::White,
+            text_dim: Color::DarkGray,
+            border: Color::Green,
+            success: Color::Green,
+            warning: Color::Yellow,
+            error: Color::Red,
+            info: Color::Blue,
+            highlight: Color::DarkGray,
+            bg_primary: Color::Rgb(10, 15, 20),
+            bg_highlight: Color::Rgb(20, 30, 40),
+            bg_overlay: Color::Rgb(5, 10, 15),
+        }
+    }
+}
+
+fn parse_hex_color(hex: &str) -> Option<Color> {
+    let hex = hex.trim_start_matches('#');
+    if hex.len() != 6 {
+        return None;
+    }
+    
+    let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
+    let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
+    let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
+    
+    Some(Color::Rgb(r, g, b))
+}
+
+fn load_omarchy_theme() -> Option<OmarchyTheme> {
+    let home = std::env::var("HOME").ok()?;
+    let theme_path = PathBuf::from(home)
+        .join(".config/omarchy/current/theme/colors.toml");
+    
+    let contents = fs::read_to_string(theme_path).ok()?;
+    toml::from_str(&contents).ok()
+}
+
+pub fn load_theme() -> ThemeColors {
+    if let Some(omarchy) = load_omarchy_theme() {
+        ThemeColors {
+            primary: parse_hex_color(&omarchy.accent).unwrap_or(Color::Cyan),
+            secondary: parse_hex_color(&omarchy.color2).unwrap_or(Color::Green),
+            text: parse_hex_color(&omarchy.foreground).unwrap_or(Color::White),
+            text_dim: parse_hex_color(&omarchy.color8).unwrap_or(Color::DarkGray),
+            border: parse_hex_color(&omarchy.accent).unwrap_or(Color::Green),
+            success: parse_hex_color(&omarchy.color2).unwrap_or(Color::Green),
+            warning: parse_hex_color(&omarchy.color3).unwrap_or(Color::Yellow),
+            error: parse_hex_color(&omarchy.color1).unwrap_or(Color::Red),
+            info: parse_hex_color(&omarchy.color4).unwrap_or(Color::Blue),
+            highlight: parse_hex_color(&omarchy.selection_background).unwrap_or(Color::DarkGray),
+            bg_primary: Color::Rgb(10, 15, 20),
+            bg_highlight: Color::Rgb(20, 30, 40),
+            bg_overlay: Color::Rgb(5, 10, 15),
+        }
+    } else {
+        ThemeColors::default()
+    }
+}

@@ -4,7 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
-const AI_PROCESSES: &[&str] = &["claude", "opencode", "zoyd"];
+const AI_PROCESSES: &[&str] = &["claude", "opencode", "zoyd", "openclaw"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum ProcessState {
