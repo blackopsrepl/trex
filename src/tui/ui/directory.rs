@@ -99,7 +99,10 @@ pub fn render_directory_list(frame: &mut Frame, app: &App, area: Rect) {
 
             let line = Line::from(vec![
                 Span::styled(display_name, name_style),
-                Span::styled(format!(" [{}]", path_str), Style::default().fg(app.theme.info)),
+                Span::styled(
+                    format!(" [{}]", path_str),
+                    Style::default().fg(app.theme.info),
+                ),
             ]);
 
             ListItem::new(line).style(item_style)

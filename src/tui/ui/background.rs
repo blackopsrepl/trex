@@ -1,9 +1,9 @@
 use ratatui::{
+    Frame,
     layout::Rect,
     style::Style,
     text::{Line, Span},
     widgets::Paragraph,
-    Frame,
 };
 
 use super::constants::{EYE_CHAR, EYE_LINE, TREX_ASCII};
@@ -16,10 +16,10 @@ pub fn render_background_trex(frame: &mut Frame, app: &App, area: Rect) {
         return;
     }
 
-    // Gradient flows from primary (head) to warning (feet):
-    // jungle green canopy fading to warm amber ground.
-    // With Omarchy these are the theme's actual hex colors;
-    // without, the fallbacks give a jungle green-to-amber tone.
+    /* Gradient flows from primary (head) to warning (feet):
+     * jungle green canopy fading to warm amber ground.
+     * With Omarchy these are the theme's actual hex colors;
+     * without, the fallbacks give a jungle green-to-amber tone. */
     let top = extract_rgb(app.theme.primary, (80.0, 200.0, 120.0));
     let bottom = extract_rgb(app.theme.warning, (255.0, 200.0, 30.0));
 

@@ -1,10 +1,10 @@
 use crate::tui::app::App;
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
     widgets::{BarChart, BarGroup, Block, BorderType, Borders, Paragraph},
-    Frame,
 };
 
 pub fn render_barchart_view(frame: &mut Frame, app: &App) {

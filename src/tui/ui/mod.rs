@@ -2,6 +2,7 @@ use crate::tui::app::{App, AppMode};
 use ratatui::Frame;
 
 // Submodules
+mod agents;
 #[cfg(feature = "ascii-art")]
 mod background;
 mod barchart;
@@ -11,6 +12,9 @@ mod directory;
 mod expanded;
 mod naming;
 mod normal;
+mod overview;
+mod session_row;
+mod sessions;
 mod stats_overlay;
 
 // Re-export only the main rendering function that's called from render()

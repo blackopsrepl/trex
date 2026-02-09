@@ -7,7 +7,8 @@ use ratatui::{
     Frame,
 };
 
-use super::normal::{render_agent_box, render_system_overview};
+use super::agents::render_agent_box;
+use super::overview::render_system_overview;
 
 pub fn render_expanded_mode(frame: &mut Frame, app: &App) {
     let visible_agents = app.visible_agents();

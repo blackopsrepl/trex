@@ -5,18 +5,16 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{
-        Block, Borders, BorderType, Clear, Paragraph, Wrap,
-    },
+    widgets::{Block, BorderType, Borders, Clear, Paragraph, Wrap},
 };
 
 pub fn render_stats_overlay(frame: &mut Frame, app: &App) {
     // Calculate overlay area (80% of screen, centered)
     let area = centered_rect(85, 85, frame.area());
-    
+
     // Clear the area and render semi-transparent background
     frame.render_widget(Clear, area);
-    
+
     let outer_block = Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Double)
@@ -32,11 +30,11 @@ pub fn render_stats_overlay(frame: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(8),   // Top CPU consumers
-            Constraint::Length(8),   // Top memory consumers
-            Constraint::Length(8),   // Health status
-            Constraint::Min(1),      // Activity timeline
-            Constraint::Length(2),   // Help
+            Constraint::Length(8), // Top CPU consumers
+            Constraint::Length(8), // Top memory consumers
+            Constraint::Length(8), // Health status
+            Constraint::Min(1),    // Activity timeline
+            Constraint::Length(2), // Help
         ])
         .split(inner);
 
@@ -58,7 +56,9 @@ fn render_top_cpu(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(block, area);
 
     // Collect and sort by CPU
-    let mut sessions: Vec<_> = app.sessions.iter()
+    let mut sessions: Vec<_> = app
+        .sessions
+        .iter()
         .filter_map(|s| s.stats.as_ref().map(|stats| (s, stats)))
         .collect();
     sessions.sort_by(|a, b| b.1.cpu_percent.partial_cmp(&a.1.cpu_percent).unwrap());
@@ -74,7 +74,10 @@ fn render_top_cpu(frame: &mut Frame, app: &App, area: Rect) {
         };
 
         lines.push(Line::from(vec![
-            Span::styled(format!("{}. ", i + 1), Style::default().fg(app.theme.text_dim)),
+            Span::styled(
+                format!("{}. ", i + 1),
+                Style::default().fg(app.theme.text_dim),
+            ),
             Span::styled(
                 format!("{:.<20}", &session.name),
                 Style::default().fg(app.theme.text),
@@ -108,7 +111,9 @@ fn render_top_memory(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(block, area);
 
     // Collect and sort by memory
-    let mut sessions: Vec<_> = app.sessions.iter()
+    let mut sessions: Vec<_> = app
+        .sessions
+        .iter()
         .filter_map(|s| s.stats.as_ref().map(|stats| (s, stats)))
         .collect();
     sessions.sort_by(|a, b| b.1.mem_mb.cmp(&a.1.mem_mb));
@@ -124,7 +129,10 @@ fn render_top_memory(frame: &mut Frame, app: &App, area: Rect) {
         };
 
         lines.push(Line::from(vec![
-            Span::styled(format!("{}. ", i + 1), Style::default().fg(app.theme.text_dim)),
+            Span::styled(
+                format!("{}. ", i + 1),
+                Style::default().fg(app.theme.text_dim),
+            ),
             Span::styled(
                 format!("{:.<20}", &session.name),
                 Style::default().fg(app.theme.text),
@@ -180,11 +188,26 @@ fn render_health_summary(frame: &mut Frame, app: &App, area: Rect) {
     let mut lines = vec![
         Line::from(vec![
             Span::styled("🟢 Healthy: ", Style::default().fg(app.theme.success)),
-            Span::styled(format!("{}", healthy), Style::default().fg(app.theme.text).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!("{}", healthy),
+                Style::default()
+                    .fg(app.theme.text)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("  🟡 Warning: ", Style::default().fg(app.theme.warning)),
-            Span::styled(format!("{}", warning), Style::default().fg(app.theme.text).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!("{}", warning),
+                Style::default()
+                    .fg(app.theme.text)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("  🔴 Critical: ", Style::default().fg(app.theme.error)),
-            Span::styled(format!("{}", critical), Style::default().fg(app.theme.text).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!("{}", critical),
+                Style::default()
+                    .fg(app.theme.text)
+                    .add_modifier(Modifier::BOLD),
+            ),
         ]),
         Line::from(""),
     ];
@@ -192,13 +215,18 @@ fn render_health_summary(frame: &mut Frame, app: &App, area: Rect) {
     if !critical_sessions.is_empty() {
         lines.push(Line::from(Span::styled(
             "Critical sessions:",
-            Style::default().fg(app.theme.error).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(app.theme.error)
+                .add_modifier(Modifier::BOLD),
         )));
         for (name, score) in critical_sessions {
             lines.push(Line::from(vec![
                 Span::styled("  • ", Style::default().fg(app.theme.error)),
                 Span::styled(name, Style::default().fg(app.theme.text)),
-                Span::styled(format!(" (score: {})", score), Style::default().fg(app.theme.text_dim)),
+                Span::styled(
+                    format!(" (score: {})", score),
+                    Style::default().fg(app.theme.text_dim),
+                ),
             ]));
         }
     }
@@ -218,14 +246,18 @@ fn render_activity_timeline(frame: &mut Frame, app: &App, area: Rect) {
     frame.render_widget(block, area);
 
     // Sort sessions by last activity
-    let mut sessions_with_activity: Vec<_> = app.sessions.iter()
+    let mut sessions_with_activity: Vec<_> = app
+        .sessions
+        .iter()
         .filter_map(|s| s.last_activity.map(|ts| (s, ts)))
         .collect();
     sessions_with_activity.sort_by(|a, b| b.1.cmp(&a.1));
 
     let mut lines = Vec::new();
     for (session, _) in sessions_with_activity.iter().take(10) {
-        let activity_str = session.activity_ago_string().unwrap_or_else(|| "unknown".to_string());
+        let activity_str = session
+            .activity_ago_string()
+            .unwrap_or_else(|| "unknown".to_string());
         let (icon, color) = match session.activity_level() {
             Some(crate::tmux::ActivityLevel::Active) => ("●", app.theme.success),
             Some(crate::tmux::ActivityLevel::Idle) => ("○", app.theme.warning),
@@ -264,12 +296,22 @@ fn render_activity_timeline(frame: &mut Frame, app: &App, area: Rect) {
 fn render_overlay_help(frame: &mut Frame, app: &App, area: Rect) {
     let help = Paragraph::new(Line::from(vec![
         Span::styled("Press ", Style::default().fg(app.theme.text_dim)),
-        Span::styled("S", Style::default().fg(app.theme.primary).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "S",
+            Style::default()
+                .fg(app.theme.primary)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" or ", Style::default().fg(app.theme.text_dim)),
-        Span::styled("ESC", Style::default().fg(app.theme.primary).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "ESC",
+            Style::default()
+                .fg(app.theme.primary)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" to close overlay", Style::default().fg(app.theme.text_dim)),
     ]));
-    
+
     frame.render_widget(help, area);
 }
 

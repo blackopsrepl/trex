@@ -135,7 +135,9 @@ pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
             Span::styled(" to create  ", Style::default().fg(app.theme.text_dim)),
             Span::styled(
                 "Esc",
-                Style::default().fg(app.theme.error).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(app.theme.error)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::styled(" to go back", Style::default().fg(app.theme.text_dim)),
         ]),
