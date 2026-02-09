@@ -1,304 +1,208 @@
 # trex
 
-A fast, minimal tmux session manager with fuzzy finding, an interactive TUI, and real-time AI coding agent monitoring.
+A tmux session manager with real-time system monitoring and AI agent tracking.
+Built in Rust with [ratatui](https://github.com/ratatui-org/ratatui). Designed for [Omarchy](https://github.com/basecamp/omarchy).
 
-## Features
+## What It Does
 
-- **AI Agent Dashboard** - Monitor running AI coding assistants (Claude, OpenCode, Zoyd) with real-time activity indicators and hierarchical child agent display
-- **Interactive TUI** - Browse and manage tmux sessions with a clean, responsive interface
-- **Fuzzy Finding** - Quickly filter sessions and directories with fuzzy search powered by `nucleo`
-- **Smart Session Selection** - Automatically preselects sessions matching your current directory
-- **Directory Discovery** - Find and create sessions in any directory with configurable filesystem scanning
-- **Activity Indicators** - See at a glance which sessions are active, idle, or dormant
-- **Git Integration** - View branch name, dirty file count, and ahead/behind status for git repos
-- **Window Expansion** - Expand sessions to see and jump to specific windows without attaching first
-- **Live Preview** - See the current pane content of any session before attaching
-- **Vim-like Keybindings** - Navigate efficiently with familiar `j`/`k` movements
-- **Session Management** - Create, attach, delete, and detach sessions with simple keyboard shortcuts
-- **Lightweight** - Written in Rust with minimal dependencies and fast startup time
+trex replaces the tmux session workflow -- listing, switching, creating, killing -- with an interactive TUI that shows you what's actually happening inside each session.
+
+**Session management.** Fuzzy-find sessions by name or path. Expand any session to see its windows. Preview live pane content before attaching. Create sessions from a directory picker with configurable scan depth. Smart preselection matches your current working directory. Git status (branch, dirty count, ahead/behind) displayed inline.
+
+**System monitoring.** Live per-session CPU and memory usage with color-coded gauges and sparkline history charts. Health scores (0-100) combine CPU, memory, and activity into a single indicator per session. A bar chart view (`b`) ranks sessions by resource consumption. A stats overlay (`s`) gives you the full picture: top consumers, health summary, and activity timeline.
+
+**AI agent tracking.** Detects running AI coding agents -- Claude, OpenCode, Zoyd, OpenClaw -- by scanning `/proc`. Shows activity state (running/waiting), maps agents to their tmux sessions, and displays parent-child process relationships. Navigate directly to any agent's session from the agent panel.
+
+## Omarchy Integration
+
+trex reads your current Omarchy theme from `~/.config/omarchy/current/theme/colors.toml` and adapts its entire color scheme automatically. No configuration needed.
+
+**Theme mapping:**
+
+| Omarchy color | trex usage |
+|---------------|------------|
+| `accent` | Borders, selected items, branding |
+| `color1` | Error indicators |
+| `color2` | Active/success indicators |
+| `color3` | Warning/idle indicators |
+| `color4` | Info, memory display |
+| `color8` | Dimmed text |
+| `foreground` | Primary text |
+| `selection_background` | Highlight |
+
+The T-Rex ASCII background generates a gradient from your accent color. If Omarchy is not detected, trex falls back to a default green theme.
+
+**Recommended keybinding.** Add to `~/.config/hypr/bindings.conf`:
+
+```conf
+bindd = SUPER SHIFT, T, Tmux Manager, exec, trex
+```
+
+This follows Omarchy's `SUPER SHIFT + letter` pattern for application launchers.
+
+**Bash keybinding.** Add to your `.bashrc` for terminal access:
+
+```bash
+bind '"\C-t": "\C-a\C-ktrex\n"'
+```
 
 ## Installation
 
-### Prerequisites
+### From Source
 
-- **tmux** must be installed and in your PATH
-
-### Quick Install (Linux x86_64)
-
-```bash
-curl -fsSL https://github.com/blackopsrepl/trex/releases/latest/download/trex-linux-x86_64.tar.gz | tar -xzf - -C ~/.cargo/bin
-```
-
-### Build from Source
-
-Requires the Rust toolchain.
+Requires the Rust toolchain (1.85+, edition 2024).
 
 ```bash
 git clone https://github.com/blackopsrepl/trex.git
 cd trex
-make install-user    # Install to ~/.cargo/bin
-# or
-sudo make install    # Install to /usr/local/bin
+make install-user    # installs to ~/.cargo/bin
 ```
 
-### Static Binary (Universal Linux)
-
-Build a fully static binary that works on any Linux distribution:
+Or system-wide:
 
 ```bash
-make static          # Build static x86_64 binary
-sudo make install-static
+sudo make install    # installs to /usr/local/bin
 ```
 
-### All Make Targets
+### Prebuilt Binaries
 
+Static Linux binaries (x86_64 and aarch64) are published on GitHub releases:
+
+```bash
+curl -fsSL https://github.com/blackopsrepl/trex/releases/latest/download/trex-linux-x86_64.tar.gz \
+  | tar -xzf - -C ~/.cargo/bin
 ```
-make              Build optimized release binary
-make static       Build static x86_64 Linux binary (musl)
-make static-arm   Build static aarch64 Linux binary (musl)
-make install      Install to /usr/local/bin (may need sudo)
-make install-user Install to ~/.cargo/bin
-make dist         Create release archive
-make test         Run tests
-make help         Show all targets
+
+### Static Build
+
+Build a fully static binary with musl:
+
+```bash
+make static          # x86_64
+make static-arm      # aarch64
 ```
 
 ## Usage
 
-### Basic Usage
-
-Simply run `trex` from outside tmux:
+Run `trex` from outside tmux. tmux must be installed and in your PATH.
 
 ```bash
 trex
 ```
 
-### Zsh Keybinding (Ctrl+T)
-
-Add trex to your Ctrl+T keybinding for quick access. Create a file at `~/.zsh/trex-keybinding.zsh`:
-
-```zsh
-# CTRL-T - Launch trex
-trex-widget() {
-  zle push-input
-  BUFFER="trex"
-  zle accept-line
-}
-zle -N trex-widget
-bindkey -M emacs '^T' trex-widget
-bindkey -M vicmd '^T' trex-widget
-bindkey -M viins '^T' trex-widget
-```
-
-Then source it in your `~/.zshrc`:
-
-```zsh
-[ -f ~/.zsh/trex-keybinding.zsh ] && source ~/.zsh/trex-keybinding.zsh
-```
-
-Now pressing `Ctrl+T` will launch trex!
-
 ### Keybindings
 
-#### Normal Mode (Agent & Session Navigation)
+**Normal mode**
 
 | Key | Action |
 |-----|--------|
-| `j` / `Down` | Navigate down (agents → sessions) |
-| `k` / `Up` | Navigate up (sessions → agents) |
-| `g` / `Home` | Jump to first item in current area |
-| `G` / `End` | Jump to last item in current area |
-| `Enter` | Attach to selected agent's session or selected session |
-| `l` / `Right` | Expand session to show windows |
-| `p` | Toggle live preview panel |
-| `c` | Enter directory selection mode (create new session) |
-| `d` | Delete selected session |
+| `j` / `Down` | Move down (agents to sessions) |
+| `k` / `Up` | Move up (sessions to agents) |
+| `g` / `Home` | First item |
+| `G` / `End` | Last item |
+| `Enter` | Attach to session or agent's session |
+| `l` / `Right` | Expand session windows |
+| `p` | Toggle live preview |
+| `b` | Toggle bar chart view |
+| `s` | Toggle stats overlay |
+| `c` | Create new session |
+| `d` | Delete session |
 | `D` | Delete all sessions |
-| `x` | Detach clients from selected session |
-| `X` | Detach all clients from all sessions |
-| `/` | Enter filter mode |
+| `x` | Detach clients from session |
+| `X` | Detach all clients |
+| `/` | Filter mode |
 | `q` / `Esc` / `Ctrl-t` | Quit |
 
-#### Expanded Session Mode (Window List)
+**Expanded session mode** (window list)
 
 | Key | Action |
 |-----|--------|
-| `j` / `Down` | Navigate down through windows |
-| `k` / `Up` | Navigate up through windows |
-| `Enter` | Attach to selected window |
-| `h` / `Left` / `Esc` | Collapse and return to session list |
-| `q` | Quit |
+| `j` / `k` | Navigate windows |
+| `Enter` | Attach to window |
+| `h` / `Left` / `Esc` | Collapse back |
 
-#### Filter Mode
+**Filter mode**
 
 | Key | Action |
 |-----|--------|
-| Type | Filter sessions by name/path |
-| `Backspace` | Delete filter character |
-| `Esc` | Exit filter mode |
+| Type | Fuzzy filter sessions |
+| `Backspace` | Delete character |
+| `Esc` | Exit filter |
 
-#### Directory Selection Mode
+**Directory selection** (creating sessions)
 
 | Key | Action |
 |-----|--------|
-| `j` / `Down` | Navigate down |
-| `k` / `Up` | Navigate up |
-| `g` / `Home` | Jump to first directory |
-| `G` / `End` | Jump to last directory |
-| `Enter` | Create session in selected directory |
-| `+` | Increase directory scan depth (max 6) |
-| `-` | Decrease directory scan depth (min 1) |
-| `Tab` | Autocomplete filter with selected directory path |
-| Type | Filter directories (fuzzy matching) |
-| `Backspace` | Delete filter character |
-| `Esc` | Cancel and return to session list |
+| `j` / `k` | Navigate directories |
+| `Enter` | Create session in directory |
+| `+` / `-` | Adjust scan depth (1-6) |
+| `Tab` | Autocomplete from selection |
+| Type | Fuzzy filter directories |
+| `Esc` | Cancel |
 
+**Bar chart view**
 
-## How It Works
+| Key | Action |
+|-----|--------|
+| `b` / `Esc` | Return to normal view |
 
-### AI Agent Dashboard
+**Stats overlay**
 
-The top section displays all running AI coding assistants with real-time status:
-
-```
-┌─ RUNNING AGENTS ────────────────────────────────────────┐
-│ ▶ claude:my-project ● (claude)  ⏸ opencode:api-server ● │
-│ ⏸ zoyd:frontend ●                                       │
-└─────────────────────────────────────────────────────────┘
-```
-
-- **Activity indicators**: `▶` green (running/active), `⏸` yellow (waiting/idle), `◼` gray (unknown)
-- **Tmux indicators**: `●` in a tmux session, `○` standalone terminal
-- **Process name**: The AI assistant (claude, opencode, zoyd)
-- **Project name**: Derived from the process's working directory
-- **Child agents**: When an AI spawns other AI processes (e.g., Claude spawning sub-agents), child names are shown in parentheses after the tmux icon
-- **Real-time updates**: Activity state refreshes every 100ms, process list every 2 seconds
-- **Hierarchy-aware**: Only root AI processes are shown; child processes are grouped under their parent
-
-Navigate to the agent box by pressing `k` from the top of the session list. Press `Enter` on any agent to jump directly to its tmux session.
-
-When viewing an expanded session or using preview mode, the agent box filters to show only agents running in that specific session.
-
-### Session Display
-
-Each session in the list shows rich information at a glance:
-
-```
-┌─ Sessions (3) ──────────────────────────────────────────┐
-│ ●* api-server (3 win) 2m  main +3 ↑2  ~/projects/api    │
-│ ○  frontend (2 win) 15m  feature/auth  ~/work/frontend  │
-│ ◌  old-project (1 win) 2h  ~/archive/old                │
-└─────────────────────────────────────────────────────────┘
-```
-
-- **Activity indicator**: `●` green (active < 5min), `○` yellow (idle 5-30min), `◌` gray (dormant > 30min)
-- **Attached indicator**: `*` shown when a client is attached to the session
-- **Window count**: Number of windows in the session
-- **Time since activity**: How long since the last activity (e.g., "2m", "1h", "3d")
-- **Git status**: Branch name, dirty count (+N), ahead/behind remote (↑N↓N)
-- **Path**: Working directory of the session
-
-### Session Preselection
-
-When you launch trex, it automatically tries to select a session that matches your current working directory:
-
-1. First, it looks for a session with an exact path match
-2. If not found, it looks for a session whose name matches your current directory name
-3. If still not found, it selects the first session
-
-This makes it quick to jump back into the session you're likely working on.
-
-### Window Expansion
-
-Press `l` or `→` on any session to expand it and see all its windows:
-
-```
-▼ api-server (3 win)
-    ● 0: vim [nvim]
-      1: shell [zsh]
-      2: logs [tail]
-```
-
-Navigate with `j`/`k` and press `Enter` to attach directly to a specific window. Press `h`, `←`, or `Esc` to collapse.
-
-### Live Preview
-
-Press `p` to toggle a preview panel showing the current pane content of the selected session:
-
-```
-┌─ Sessions ─────────────────┬─ Preview: api-server ─────┐
-│ ●* api-server              │ $ npm run dev             │
-│ ○  frontend (2 win)        │ > server listening :3000  │
-│ ◌  database                │ > connected to postgres   │
-└────────────────────────────┴───────────────────────────┘
-```
-
-The preview updates as you navigate between sessions, letting you peek at what's running before attaching.
-
-### Directory Discovery
-
-When creating a new session (press `c`), trex scans the filesystem to find directories:
-
-- **Prioritizes:** Current working directory, home directory, and common project directories (`~/projects`, `~/work`, `~/dev`, `~/code`, `~/src`)
-- **Configurable depth:** Scan from 1-6 levels deep (default: 3), adjustable with `+`/`-` keys
-- **Skips symlinks:** Avoids infinite loops
-- **Deduplicates:** Removes duplicate entries automatically
-- **Fuzzy matching:** Quickly filter thousands of directories
-
-### Session Naming
-
-Session names are automatically derived from directory names and sanitized for tmux compatibility:
-
-- Alphanumeric characters, hyphens, and underscores are preserved
-- All other characters are replaced with underscores
-- Example: `/home/user/my-project` → session name: `my-project`
-
-## Development
-
-```bash
-make test    # Run tests
-make lint    # Run clippy
-make fmt     # Format code
-make check   # Check without building
-make clean   # Remove build artifacts
-```
+| Key | Action |
+|-----|--------|
+| `s` / `Esc` | Close overlay |
 
 ## Architecture
 
-trex is organized into several modules:
-
-- **`src/directory.rs`** - Directory discovery and fuzzy matching
-- **`src/git.rs`** - Git repository status detection (branch, dirty files, ahead/behind)
-- **`src/process.rs`** - AI coding assistant detection and monitoring
-  - Scans `/proc` filesystem for claude, opencode, zoyd processes
-  - Maps process TTY to tmux session names
-  - Reads process state (Running/Waiting) from `/proc/{pid}/stat`
-- **`src/tmux/`** - Tmux integration
-  - `commands.rs` - Tmux CLI wrapper (sessions, windows, pane capture)
-  - `session.rs` - Session struct with activity tracking
-  - `window.rs` - Window struct for expanded view
-  - `parser.rs` - Output parsing
-- **`src/tui/`** - Terminal UI
-  - `app.rs` - Application state, focus tracking, and business logic
-  - `events.rs` - Keyboard event handling with agent/session navigation
-  - `ui.rs` - Rendering (agents, sessions, windows, preview)
-- **`src/main.rs`** - Entry point and action handling
+```
+src/
+  main.rs           Entry point, TTY handling, action dispatch
+  theme.rs          Omarchy theme loading and fallback
+  process.rs        AI agent detection via /proc scanning
+  sysinfo.rs        Per-session CPU/memory stats from /proc
+  health.rs         Session health scoring algorithm
+  git.rs            Git status detection (branch, dirty, ahead/behind)
+  directory.rs      Directory discovery and session naming
+  tmux/
+    commands.rs     Tmux CLI wrapper (sessions, windows, panes)
+    session.rs      Session struct, activity levels, CWD matching
+    parser.rs       Output parsing
+    window.rs       Window struct and parsing
+  tui/
+    mod.rs          Event loop with tiered refresh (100ms/1s/2s)
+    events.rs       Key event dispatch across 7 modes
+    app/            Application state (agent, directory, filter, naming,
+                    preview, session, window submodules)
+    ui/             Rendering (normal, expanded, directory, naming,
+                    barchart, stats_overlay, background)
+```
 
 ## Dependencies
 
-- [ratatui](https://github.com/ratatui-org/ratatui) - Terminal UI framework
-- [crossterm](https://github.com/crossterm-rs/crossterm) - Cross-platform terminal handling
-- [nucleo](https://github.com/helix-editor/nucleo) - Fuzzy matching
-- [anyhow](https://github.com/dtolnay/anyhow) - Error handling
+| Crate | Purpose |
+|-------|---------|
+| [ratatui](https://github.com/ratatui-org/ratatui) | Terminal UI framework |
+| [crossterm](https://github.com/crossterm-rs/crossterm) | Terminal backend |
+| [nucleo](https://github.com/helix-editor/nucleo) | Fuzzy matching (from Helix) |
+| [anyhow](https://github.com/dtolnay/anyhow) | Error handling |
+| [toml](https://github.com/toml-rs/toml) + [serde](https://serde.rs) | Theme config parsing |
+| [which](https://github.com/harryfei/which-rs) | tmux binary lookup |
+| [libc](https://github.com/rust-lang/libc) | TTY handling |
+
+## Development
+
+```
+make              Build release binary
+make static       Static x86_64 binary (musl)
+make static-arm   Static aarch64 binary (musl)
+make test         Run tests
+make lint         Run clippy
+make fmt          Format code
+make check        Type-check without building
+make clean        Remove build artifacts
+make help         Show all targets
+```
 
 ## License
-ISC License - see [LICENSE](LICENSE) for details.
 
-## Why trex?
-
-- **Fast:** Rust performance with minimal startup time
-- **Simple:** Single binary, no configuration files needed
-- **Interactive:** Visual interface beats remembering session names
-- **Smart:** Automatic session preselection based on your current directory
-- **Informative:** Activity status, git info, and live preview at a glance
-- **Minimal:** Does one thing well - session management
+ISC -- see [LICENSE](LICENSE).
