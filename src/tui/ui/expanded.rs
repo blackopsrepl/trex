@@ -1,10 +1,10 @@
 use crate::tui::app::App;
 use ratatui::{
-    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, BorderType, List, ListItem, Paragraph},
+    widgets::{Block, BorderType, Borders, List, ListItem, Paragraph},
+    Frame,
 };
 
 use super::normal::{render_agent_box, render_system_overview};
@@ -114,22 +114,33 @@ pub fn render_window_list(frame: &mut Frame, app: &App, area: Rect) {
 }
 
 pub fn render_help_expanded(frame: &mut Frame, app: &App, area: Rect) {
-    let help_items = vec![
-        ("j/k", "navigate"), ("↵", "attach"), ("h/Esc", "back"), ("q", "quit"),
+    let help_items: &[(&str, &str)] = &[
+        ("j/k", "navigate"),
+        ("↵", "attach"),
+        ("h/Esc", "back"),
+        ("q", "quit"),
     ];
 
     let mut spans = Vec::new();
-    
+
     for (i, (key, action)) in help_items.iter().enumerate() {
         if i > 0 {
             spans.push(Span::styled(" │ ", Style::default().fg(app.theme.text_dim)));
         }
-        spans.push(Span::styled(*key, Style::default().fg(app.theme.primary).add_modifier(Modifier::BOLD)));
-        spans.push(Span::styled(format!(" {}", action), Style::default().fg(app.theme.text)));
+        spans.push(Span::styled(
+            *key,
+            Style::default()
+                .fg(app.theme.primary)
+                .add_modifier(Modifier::BOLD),
+        ));
+        spans.push(Span::styled(
+            format!(" {}", action),
+            Style::default().fg(app.theme.text),
+        ));
     }
 
     let help_line = Line::from(spans);
-    
+
     let block = Block::default()
         .borders(Borders::TOP)
         .border_style(Style::default().fg(app.theme.text_dim));
