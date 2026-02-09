@@ -3,7 +3,7 @@ use crate::tmux::ActivityLevel;
 use crate::tui::app::{App, AppMode, FocusArea};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, BorderType, Borders, Gauge, Paragraph, Sparkline},
     Frame,
@@ -15,24 +15,6 @@ const SCROLL_THUMB: &str = "┃";
 
 /// Pulsing dot animation frames
 const PULSE_FRAMES: &[&str] = &["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-
-/// Smooth gradient: green (0%) → yellow (50%) → red (100%)
-fn gradient_color(percent: f64) -> Color {
-    let t = (percent / 100.0).clamp(0.0, 1.0);
-    if t < 0.5 {
-        // Green to Yellow
-        let f = t * 2.0;
-        Color::Rgb(
-            (50.0 + 205.0 * f) as u8,
-            (200.0 + 55.0 * (1.0 - f * 0.3)) as u8,
-            (50.0 * (1.0 - f)) as u8,
-        )
-    } else {
-        // Yellow to Red
-        let f = (t - 0.5) * 2.0;
-        Color::Rgb(255, (220.0 * (1.0 - f)) as u8, 0)
-    }
-}
 
 pub fn render_normal_mode(frame: &mut Frame, app: &App) {
     let visible_agents = app.visible_agents();
@@ -513,7 +495,7 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
         if let Some(ref stats) = session.stats {
             // CPU Gauge with smooth gradient color
             let cpu_ratio = (stats.cpu_percent / 100.0).min(1.0);
-            let cpu_color = gradient_color(stats.cpu_percent);
+            let cpu_color = app.theme.gradient_color(stats.cpu_percent);
 
             let cpu_gauge = Gauge::default()
                 .block(Block::default())
@@ -531,7 +513,7 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
 
             // Memory Gauge with smooth gradient color
             let mem_ratio = (stats.mem_percent / 100.0).min(1.0);
-            let mem_color = gradient_color(stats.mem_percent);
+            let mem_color = app.theme.gradient_color(stats.mem_percent);
 
             let mem_gauge = Gauge::default()
                 .block(Block::default())
