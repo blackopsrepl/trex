@@ -2,13 +2,11 @@ use crate::process::ProcessState;
 use crate::tmux::ActivityLevel;
 use crate::tui::app::{App, AppMode, FocusArea};
 use ratatui::{
-    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{
-        Block, Borders, BorderType, Gauge, Paragraph, Sparkline,
-    },
+    widgets::{Block, BorderType, Borders, Gauge, Paragraph, Sparkline},
+    Frame,
 };
 
 /// Braille-based vertical scrollbar characters
@@ -32,11 +30,7 @@ fn gradient_color(percent: f64) -> Color {
     } else {
         // Yellow to Red
         let f = (t - 0.5) * 2.0;
-        Color::Rgb(
-            255,
-            (220.0 * (1.0 - f)) as u8,
-            0,
-        )
+        Color::Rgb(255, (220.0 * (1.0 - f)) as u8, 0)
     }
 }
 
@@ -80,7 +74,7 @@ pub fn render_system_overview(frame: &mut Frame, app: &App, area: Rect) {
     let mut total_cpu = 0.0;
     let mut total_mem_mb = 0u64;
     let mut active_sessions = 0;
-    
+
     for session in &app.sessions {
         if let Some(ref stats) = session.stats {
             total_cpu += stats.cpu_percent;
@@ -95,26 +89,53 @@ pub fn render_system_overview(frame: &mut Frame, app: &App, area: Rect) {
     let pulse = PULSE_FRAMES[(app.tick as usize / 2) % PULSE_FRAMES.len()];
 
     let overview_line = Line::from(vec![
-        Span::styled(format!("{} ", pulse), Style::default().fg(app.theme.success)),
-        Span::styled("TREX ", Style::default().fg(app.theme.primary).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            format!("{} ", pulse),
+            Style::default().fg(app.theme.success),
+        ),
+        Span::styled(
+            "TREX ",
+            Style::default()
+                .fg(app.theme.primary)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("│ ", Style::default().fg(app.theme.text_dim)),
-        Span::styled(format!("{} sessions", app.sessions.len()), Style::default().fg(app.theme.info)),
+        Span::styled(
+            format!("{} sessions", app.sessions.len()),
+            Style::default().fg(app.theme.info),
+        ),
         Span::styled(" │ ", Style::default().fg(app.theme.text_dim)),
-        Span::styled(format!("{} attached", active_sessions), Style::default().fg(app.theme.success)),
+        Span::styled(
+            format!("{} attached", active_sessions),
+            Style::default().fg(app.theme.success),
+        ),
         Span::styled(" │ ", Style::default().fg(app.theme.text_dim)),
-        Span::styled(format!("CPU: {:.1}%", total_cpu), Style::default().fg(
-            if total_cpu > 300.0 { app.theme.error }
-            else if total_cpu > 150.0 { app.theme.warning }
-            else { app.theme.success }
-        )),
+        Span::styled(
+            format!("CPU: {:.1}%", total_cpu),
+            Style::default().fg(if total_cpu > 300.0 {
+                app.theme.error
+            } else if total_cpu > 150.0 {
+                app.theme.warning
+            } else {
+                app.theme.success
+            }),
+        ),
         Span::styled(" │ ", Style::default().fg(app.theme.text_dim)),
-        Span::styled(format!("MEM: {}MB", total_mem_mb), Style::default().fg(
-            if total_mem_mb > 4096 { app.theme.error }
-            else if total_mem_mb > 2048 { app.theme.warning }
-            else { app.theme.info }
-        )),
+        Span::styled(
+            format!("MEM: {}MB", total_mem_mb),
+            Style::default().fg(if total_mem_mb > 4096 {
+                app.theme.error
+            } else if total_mem_mb > 2048 {
+                app.theme.warning
+            } else {
+                app.theme.info
+            }),
+        ),
         Span::styled(" │ ", Style::default().fg(app.theme.text_dim)),
-        Span::styled(format!("{} agents", app.ai_processes.len()), Style::default().fg(app.theme.secondary)),
+        Span::styled(
+            format!("{} agents", app.ai_processes.len()),
+            Style::default().fg(app.theme.secondary),
+        ),
     ]);
 
     let block = Block::default()
@@ -125,7 +146,7 @@ pub fn render_system_overview(frame: &mut Frame, app: &App, area: Rect) {
     let para = Paragraph::new(overview_line)
         .block(block)
         .style(Style::default().bg(app.theme.bg_primary));
-    
+
     frame.render_widget(para, area);
 }
 
@@ -282,7 +303,8 @@ pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
             width: more_width,
             height: 1,
         };
-        let more_paragraph = Paragraph::new(more_text).style(Style::default().fg(app.theme.text_dim));
+        let more_paragraph =
+            Paragraph::new(more_text).style(Style::default().fg(app.theme.text_dim));
         frame.render_widget(more_paragraph, more_area);
     }
 }
@@ -294,7 +316,10 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
             app.filtered_indices.len(),
             app.filter_input
         ),
-        _ => format!(" ⚡ Sessions ({}) • ●=active ○=idle ◌=dormant ★=attached 🟢🟡🔴=health ", app.sessions.len()),
+        _ => format!(
+            " ⚡ Sessions ({}) • ●=active ○=idle ◌=dormant ★=attached 🟢🟡🔴=health ",
+            app.sessions.len()
+        ),
     };
 
     let border_color = if app.focus == FocusArea::Sessions {
@@ -330,11 +355,11 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
 
     // Each session takes 4 lines: header, CPU gauge, MEM gauge, sparklines
     const LINES_PER_SESSION: u16 = 5;
-    
+
     // Calculate how many sessions we can show
     let inner_height = area.height.saturating_sub(2); // minus borders
     let max_visible = (inner_height / LINES_PER_SESSION) as usize;
-    
+
     // Create scrollable window
     let start_idx = if app.selected_index >= max_visible {
         app.selected_index - max_visible + 1
@@ -345,7 +370,11 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
 
     // Scroll position indicator in title
     let scroll_info = if app.filtered_indices.len() > max_visible {
-        format!(" [{}/{}]", app.selected_index + 1, app.filtered_indices.len())
+        format!(
+            " [{}/{}]",
+            app.selected_index + 1,
+            app.filtered_indices.len()
+        )
     } else {
         String::new()
     };
@@ -369,7 +398,8 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
         let thumb_pos = if total <= max_visible {
             0
         } else {
-            ((start_idx as f64 / (total - max_visible) as f64) * (track_h - thumb_size) as f64) as usize
+            ((start_idx as f64 / (total - max_visible) as f64) * (track_h - thumb_size) as f64)
+                as usize
         };
 
         for row in 0..track_h {
@@ -397,7 +427,7 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
     }
 
     let mut y_offset = 0;
-    
+
     for display_idx in start_idx..end_idx {
         let &session_idx = &app.filtered_indices[display_idx];
         let session = &app.sessions[session_idx];
@@ -448,9 +478,15 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
                 format!(" ({} win)", session.windows),
                 Style::default().fg(app.theme.text_dim),
             ),
-            Span::styled(format!(" {}", activity_ago), Style::default().fg(activity_color)),
+            Span::styled(
+                format!(" {}", activity_ago),
+                Style::default().fg(activity_color),
+            ),
             if !git_badge.is_empty() {
-                Span::styled(format!(" {}", git_badge), Style::default().fg(app.theme.secondary))
+                Span::styled(
+                    format!(" {}", git_badge),
+                    Style::default().fg(app.theme.secondary),
+                )
             } else {
                 Span::raw("")
             },
@@ -462,13 +498,13 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
             width: inner.width,
             height: 1,
         };
-        
+
         let bg_style = if is_selected {
             Style::default().bg(app.theme.bg_highlight)
         } else {
             Style::default()
         };
-        
+
         let header_para = Paragraph::new(header_line).style(bg_style);
         frame.render_widget(header_para, header_area);
         y_offset += 1;
@@ -481,7 +517,7 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
 
             let cpu_gauge = Gauge::default()
                 .block(Block::default())
-                .gauge_style(Style::default().fg(cpu_color))
+                .gauge_style(Style::default().fg(cpu_color).bg(app.theme.bg_primary))
                 .label(format!("CPU {:5.1}%", stats.cpu_percent))
                 .ratio(cpu_ratio);
 
@@ -499,7 +535,7 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
 
             let mem_gauge = Gauge::default()
                 .block(Block::default())
-                .gauge_style(Style::default().fg(mem_color))
+                .gauge_style(Style::default().fg(mem_color).bg(app.theme.bg_primary))
                 .label(format!("MEM {:4}MB", stats.mem_mb))
                 .ratio(mem_ratio);
 
@@ -546,9 +582,10 @@ pub fn render_session_list(frame: &mut Frame, app: &App, area: Rect) {
             y_offset += 1;
         } else {
             // No stats available yet
-            let waiting_line = Line::from(vec![
-                Span::styled("  ⏳ Gathering metrics...", Style::default().fg(app.theme.text_dim)),
-            ]);
+            let waiting_line = Line::from(vec![Span::styled(
+                "  ⏳ Gathering metrics...",
+                Style::default().fg(app.theme.text_dim),
+            )]);
             let waiting_area = Rect {
                 x: inner.x,
                 y: inner.y + y_offset,
@@ -599,41 +636,60 @@ pub fn render_preview(frame: &mut Frame, app: &App, area: Rect) {
 pub fn render_help(frame: &mut Frame, app: &App, area: Rect) {
     let help_items: Vec<(&str, &str)> = match app.mode {
         AppMode::Normal => vec![
-            ("j/k", "nav"), ("l", "expand"), ("p", "preview"),
-            ("b", "charts"), ("s", "stats"),
-            ("↵", "attach"), ("c", "create"), ("d", "delete"),
-            ("/", "filter"), ("q", "quit"),
+            ("j/k", "nav"),
+            ("l", "expand"),
+            ("p", "preview"),
+            ("b", "charts"),
+            ("s", "stats"),
+            ("↵", "attach"),
+            ("c", "create"),
+            ("d", "delete"),
+            ("/", "filter"),
+            ("q", "quit"),
         ],
         AppMode::Filtering => vec![
-            ("type", "filter"), ("↵", "attach"), ("Esc", "clear"), ("Tab", "nav"),
+            ("type", "filter"),
+            ("↵", "attach"),
+            ("Esc", "clear"),
+            ("Tab", "nav"),
         ],
         AppMode::SelectingDirectory | AppMode::NamingSession => vec![
-            ("type", "filter"), ("Tab", "complete"), ("+/-", "depth"),
-            ("↵", "name"), ("Esc", "cancel"),
+            ("type", "filter"),
+            ("Tab", "complete"),
+            ("+/-", "depth"),
+            ("↵", "name"),
+            ("Esc", "cancel"),
         ],
         AppMode::ExpandedSession => vec![
-            ("j/k", "nav"), ("↵", "attach"), ("h/Esc", "back"), ("q", "quit"),
+            ("j/k", "nav"),
+            ("↵", "attach"),
+            ("h/Esc", "back"),
+            ("q", "quit"),
         ],
-        AppMode::BarChartView => vec![
-            ("b/Esc", "back"), ("q", "quit"),
-        ],
-        AppMode::StatsOverlay => vec![
-            ("s/Esc", "close"), ("q", "quit"),
-        ],
+        AppMode::BarChartView => vec![("b/Esc", "back"), ("q", "quit")],
+        AppMode::StatsOverlay => vec![("s/Esc", "close"), ("q", "quit")],
     };
 
     let mut spans = Vec::new();
-    
+
     for (i, (key, action)) in help_items.iter().enumerate() {
         if i > 0 {
             spans.push(Span::styled(" │ ", Style::default().fg(app.theme.text_dim)));
         }
-        spans.push(Span::styled(*key, Style::default().fg(app.theme.primary).add_modifier(Modifier::BOLD)));
-        spans.push(Span::styled(format!(" {}", action), Style::default().fg(app.theme.text)));
+        spans.push(Span::styled(
+            *key,
+            Style::default()
+                .fg(app.theme.primary)
+                .add_modifier(Modifier::BOLD),
+        ));
+        spans.push(Span::styled(
+            format!(" {}", action),
+            Style::default().fg(app.theme.text),
+        ));
     }
 
     let help_line = Line::from(spans);
-    
+
     let block = Block::default()
         .borders(Borders::TOP)
         .border_style(Style::default().fg(app.theme.text_dim));
