@@ -6,32 +6,53 @@ use ratatui::{
     widgets::Paragraph,
 };
 
-use super::constants::{EYE_CHAR, EYE_LINE, GREEN_GRADIENT, TREX_ASCII};
+use super::constants::{EYE_CHAR, EYE_LINE, TREX_ASCII};
+use crate::tui::app::App;
 
-pub fn render_background_trex(frame: &mut Frame, area: Rect) {
+// Generate a color gradient based on a base color
+fn generate_gradient(base_color: Color, steps: usize) -> Vec<Color> {
+    let (r, g, b) = match base_color {
+        Color::Rgb(r, g, b) => (r as f32, g as f32, b as f32),
+        _ => (80.0, 200.0, 120.0), // fallback
+    };
+
+    (0..steps)
+        .map(|i| {
+            let factor = 0.5 + (i as f32 / steps as f32) * 0.5; // 50% to 100% intensity
+            Color::Rgb(
+                (r * factor) as u8,
+                (g * factor) as u8,
+                (b * factor) as u8,
+            )
+        })
+        .collect()
+}
+
+pub fn render_background_trex(frame: &mut Frame, app: &App, area: Rect) {
     // Only render if terminal is large enough
     if area.width < 80 || area.height < 25 {
         return;
     }
 
+    let gradient = generate_gradient(app.theme.primary, 8);
+
     let lines: Vec<Line> = TREX_ASCII
         .lines()
         .enumerate()
         .map(|(idx, line)| {
-            let (r, g, b) = GREEN_GRADIENT[idx % GREEN_GRADIENT.len()];
-            let green_style = Style::default().fg(Color::Rgb(r, g, b));
+            let base_style = Style::default().fg(gradient[idx % gradient.len()]);
 
-            // Reddish eye with slight green tint
-            let eye_style = Style::default().fg(Color::Rgb(220, 50, 30));
+            // Eye uses the error color (typically red)
+            let eye_style = Style::default().fg(app.theme.error);
 
-            // Build spans with per-character coloring for the red eye
+            // Build spans with per-character coloring for the eye
             let spans: Vec<Span> = line
                 .chars()
                 .map(|c| {
                     if idx == EYE_LINE && c == EYE_CHAR {
                         Span::styled(c.to_string(), eye_style)
                     } else {
-                        Span::styled(c.to_string(), green_style)
+                        Span::styled(c.to_string(), base_style)
                     }
                 })
                 .collect();
