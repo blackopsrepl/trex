@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, List, ListItem, Paragraph},
 };
@@ -26,7 +26,7 @@ pub fn render_directory_mode(frame: &mut Frame, app: &App) {
 
     render_header_dir(frame, app, chunks[0]);
     render_directory_list(frame, app, chunks[1]);
-    render_help_dir(frame, chunks[2]);
+    render_help_dir(frame, app, chunks[2]);
 }
 
 /* Renders the header bar for directory selection mode.
@@ -40,7 +40,7 @@ pub fn render_header_dir(frame: &mut Frame, app: &App, area: Rect) {
         app.dir_scan_depth, app.dir_filter_input
     );
     let dir_count = format!(" {} dirs ", app.dir_filtered_indices.len());
-    let style = Style::default().fg(Color::Green);
+    let style = Style::default().fg(app.theme.border);
 
     let block = Block::default()
         .borders(Borders::ALL)
@@ -62,7 +62,7 @@ pub fn render_header_dir(frame: &mut Frame, app: &App, area: Rect) {
 pub fn render_directory_list(frame: &mut Frame, app: &App, area: Rect) {
     if app.dir_filtered_indices.is_empty() {
         let paragraph = Paragraph::new("No directories found")
-            .style(Style::default().fg(Color::DarkGray))
+            .style(Style::default().fg(app.theme.text_dim))
             .block(Block::default().borders(Borders::ALL));
         frame.render_widget(paragraph, area);
         return;
@@ -85,21 +85,21 @@ pub fn render_directory_list(frame: &mut Frame, app: &App, area: Rect) {
 
             let name_style = if is_selected {
                 Style::default()
-                    .fg(Color::Yellow)
+                    .fg(app.theme.warning)
                     .add_modifier(Modifier::BOLD)
             } else {
-                Style::default().fg(Color::White)
+                Style::default().fg(app.theme.text)
             };
 
             let item_style = if is_selected {
-                Style::default().bg(Color::DarkGray)
+                Style::default().bg(app.theme.highlight)
             } else {
                 Style::default()
             };
 
             let line = Line::from(vec![
                 Span::styled(display_name, name_style),
-                Span::styled(format!(" [{}]", path_str), Style::default().fg(Color::Cyan)),
+                Span::styled(format!(" [{}]", path_str), Style::default().fg(app.theme.info)),
             ]);
 
             ListItem::new(line).style(item_style)
@@ -119,9 +119,9 @@ pub fn render_directory_list(frame: &mut Frame, app: &App, area: Rect) {
  * - +/-: increase/decrease scan depth
  * - Enter: proceed to session naming
  * - Esc: cancel and return to normal mode */
-pub fn render_help_dir(frame: &mut Frame, area: Rect) {
+pub fn render_help_dir(frame: &mut Frame, app: &App, area: Rect) {
     let help_text = "Type: filter | Tab: complete | +/-: depth | Enter: name session | Esc: cancel";
-    let paragraph = Paragraph::new(help_text).style(Style::default().fg(Color::DarkGray));
+    let paragraph = Paragraph::new(help_text).style(Style::default().fg(app.theme.text_dim));
 
     frame.render_widget(paragraph, area);
 }
