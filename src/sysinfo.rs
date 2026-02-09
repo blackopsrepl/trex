@@ -8,9 +8,9 @@ use std::time::Instant;
 /// Previous CPU sample for delta-based calculation
 #[derive(Debug, Clone)]
 struct CpuSample {
-    total_ticks: u64,  // utime + stime
+    total_ticks: u64, // utime + stime
     timestamp: Instant,
-    uptime: f64,       // system uptime at sample time
+    uptime: f64, // system uptime at sample time
 }
 
 /// Global store of previous CPU samples keyed by PID
@@ -57,11 +57,14 @@ pub fn get_session_stats(session_name: &str) -> Result<SessionStats> {
             }
             // else: first sample for this PID, CPU will be 0 this round
 
-            prev.insert(*pid, CpuSample {
-                total_ticks: ticks,
-                timestamp: now,
-                uptime,
-            });
+            prev.insert(
+                *pid,
+                CpuSample {
+                    total_ticks: ticks,
+                    timestamp: now,
+                    uptime,
+                },
+            );
         }
     }
 
@@ -82,7 +85,7 @@ pub fn get_session_stats(session_name: &str) -> Result<SessionStats> {
 /// Get all PIDs for processes in a tmux session
 fn get_session_pids(session_name: &str) -> Result<Vec<u32>> {
     let output = Command::new("tmux")
-        .args(["list-panes", "-t", session_name, "-a", "-F", "#{pane_pid}"])
+        .args(["list-panes", "-t", session_name, "-F", "#{pane_pid}"])
         .output()
         .context("Failed to get pane PIDs")?;
 
@@ -145,10 +148,7 @@ fn get_process_raw(pid: u32) -> Result<(u64, u64)> {
 }
 
 fn parse_ticks_from_stat(content: &str) -> Result<u64> {
-    let rest = content
-        .split(") ")
-        .nth(1)
-        .context("Invalid stat format")?;
+    let rest = content.split(") ").nth(1).context("Invalid stat format")?;
 
     let fields: Vec<&str> = rest.split_whitespace().collect();
 
@@ -179,7 +179,10 @@ fn parse_mem_from_statm(content: &str) -> Result<u64> {
 
 fn get_system_uptime() -> Result<f64> {
     let content = fs::read_to_string("/proc/uptime").context("Failed to read uptime")?;
-    let uptime_str = content.split_whitespace().next().context("Invalid uptime")?;
+    let uptime_str = content
+        .split_whitespace()
+        .next()
+        .context("Invalid uptime")?;
     uptime_str.parse().context("Failed to parse uptime")
 }
 
