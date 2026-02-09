@@ -70,6 +70,42 @@ impl Default for ThemeColors {
     }
 }
 
+// Extract RGB components from a Color, using a fallback for ANSI named colors
+fn extract_rgb(color: Color, fallback: (f64, f64, f64)) -> (f64, f64, f64) {
+    match color {
+        Color::Rgb(r, g, b) => (r as f64, g as f64, b as f64),
+        _ => fallback,
+    }
+}
+
+// Linearly interpolate between two RGB triples
+fn lerp_rgb(a: (f64, f64, f64), b: (f64, f64, f64), t: f64) -> Color {
+    Color::Rgb(
+        (a.0 + (b.0 - a.0) * t) as u8,
+        (a.1 + (b.1 - a.1) * t) as u8,
+        (a.2 + (b.2 - a.2) * t) as u8,
+    )
+}
+
+impl ThemeColors {
+    // Smooth gradient flowing through success -> warning -> error.
+    // With Omarchy: interpolates the theme's actual hex colors.
+    // Without Omarchy: uses jungle-toned RGB fallbacks (green -> amber -> orange).
+    pub fn gradient_color(&self, percent: f64) -> Color {
+        let t = (percent / 100.0).clamp(0.0, 1.0);
+
+        let s = extract_rgb(self.success, (50.0, 200.0, 50.0));
+        let w = extract_rgb(self.warning, (255.0, 200.0, 30.0));
+        let e = extract_rgb(self.error, (255.0, 140.0, 0.0));
+
+        if t < 0.5 {
+            lerp_rgb(s, w, t * 2.0)
+        } else {
+            lerp_rgb(w, e, (t - 0.5) * 2.0)
+        }
+    }
+}
+
 fn parse_hex_color(hex: &str) -> Option<Color> {
     let hex = hex.trim_start_matches('#');
     if hex.len() != 6 {
