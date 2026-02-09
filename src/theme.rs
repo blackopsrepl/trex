@@ -94,8 +94,8 @@ fn load_omarchy_theme() -> Option<OmarchyTheme> {
 pub fn load_theme() -> ThemeColors {
     if let Some(omarchy) = load_omarchy_theme() {
         ThemeColors {
-            primary: parse_hex_color(&omarchy.accent).unwrap_or(Color::Cyan),
-            secondary: parse_hex_color(&omarchy.color2).unwrap_or(Color::Green),
+            primary: parse_hex_color(&omarchy.accent).unwrap_or(Color::Green),
+            secondary: parse_hex_color(&omarchy.color2).unwrap_or(Color::Cyan),
             text: parse_hex_color(&omarchy.foreground).unwrap_or(Color::White),
             text_dim: parse_hex_color(&omarchy.color8).unwrap_or(Color::DarkGray),
             border: parse_hex_color(&omarchy.accent).unwrap_or(Color::Green),
@@ -104,9 +104,9 @@ pub fn load_theme() -> ThemeColors {
             error: parse_hex_color(&omarchy.color1).unwrap_or(Color::Red),
             info: parse_hex_color(&omarchy.color4).unwrap_or(Color::Blue),
             highlight: parse_hex_color(&omarchy.selection_background).unwrap_or(Color::DarkGray),
-            bg_primary: Color::Rgb(10, 15, 20),
-            bg_highlight: Color::Rgb(20, 30, 40),
-            bg_overlay: Color::Rgb(5, 10, 15),
+            bg_primary: parse_hex_color(&omarchy.background).unwrap_or(Color::Black),
+            bg_highlight: parse_hex_color(&omarchy.selection_background).unwrap_or(Color::DarkGray),
+            bg_overlay: parse_hex_color(&omarchy.background).unwrap_or(Color::Black),
         }
     } else {
         ThemeColors::default()
