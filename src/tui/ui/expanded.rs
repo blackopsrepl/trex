@@ -8,6 +8,7 @@ use ratatui::{
 };
 
 use super::agents::render_agent_box;
+use super::normal::render_help;
 use super::overview::render_system_overview;
 
 pub fn render_expanded_mode(frame: &mut Frame, app: &App) {
@@ -31,7 +32,7 @@ pub fn render_expanded_mode(frame: &mut Frame, app: &App) {
     render_system_overview(frame, app, chunks[0]);
     render_agent_box(frame, app, chunks[1]);
     render_window_list(frame, app, chunks[2]);
-    render_help_expanded(frame, app, chunks[3]);
+    render_help(frame, app, chunks[3]);
 }
 
 pub fn render_window_list(frame: &mut Frame, app: &App, area: Rect) {
@@ -112,43 +113,4 @@ pub fn render_window_list(frame: &mut Frame, app: &App, area: Rect) {
     );
 
     frame.render_widget(list, area);
-}
-
-pub fn render_help_expanded(frame: &mut Frame, app: &App, area: Rect) {
-    let help_items: &[(&str, &str)] = &[
-        ("j/k", "navigate"),
-        ("↵", "attach"),
-        ("h/Esc", "back"),
-        ("q", "quit"),
-    ];
-
-    let mut spans = Vec::new();
-
-    for (i, (key, action)) in help_items.iter().enumerate() {
-        if i > 0 {
-            spans.push(Span::styled(" │ ", Style::default().fg(app.theme.text_dim)));
-        }
-        spans.push(Span::styled(
-            *key,
-            Style::default()
-                .fg(app.theme.primary)
-                .add_modifier(Modifier::BOLD),
-        ));
-        spans.push(Span::styled(
-            format!(" {}", action),
-            Style::default().fg(app.theme.text),
-        ));
-    }
-
-    let help_line = Line::from(spans);
-
-    let block = Block::default()
-        .borders(Borders::TOP)
-        .border_style(Style::default().fg(app.theme.text_dim));
-
-    let para = Paragraph::new(help_line)
-        .block(block)
-        .style(Style::default().bg(app.theme.bg_primary));
-
-    frame.render_widget(para, area);
 }
