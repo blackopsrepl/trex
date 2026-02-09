@@ -2,8 +2,10 @@ use crate::tui::app::{App, AppMode};
 use ratatui::Frame;
 
 // Submodules
+#[cfg(feature = "ascii-art")]
 mod background;
 mod barchart;
+#[cfg(feature = "ascii-art")]
 mod constants;
 mod directory;
 mod expanded;
@@ -13,6 +15,7 @@ mod stats_overlay;
 
 // Re-export only the main rendering function that's called from render()
 // Helper functions are internal and not re-exported
+#[cfg(feature = "ascii-art")]
 use background::render_background_trex;
 use barchart::render_barchart_view;
 use directory::render_directory_mode;
@@ -24,6 +27,7 @@ use stats_overlay::render_stats_overlay;
 /// Renders the entire TUI based on the current app state.
 pub fn render(frame: &mut Frame, app: &App) {
     // Render decorative T-Rex background first (behind everything)
+    #[cfg(feature = "ascii-art")]
     render_background_trex(frame, app, frame.area());
 
     match app.mode {
