@@ -31,27 +31,30 @@ struct OmarchyTheme {
 }
 
 pub struct ThemeColors {
-    pub primary: Color,        // Main accent/selection color
-    pub secondary: Color,      // Secondary accent
-    pub text: Color,           // Normal text
-    pub text_dim: Color,       // Dimmed/secondary text
-    pub border: Color,         // Borders
-    pub success: Color,        // Green/success
-    pub warning: Color,        // Yellow/warning
-    pub error: Color,          // Red/error
-    pub info: Color,           // Blue/info
-    pub highlight: Color,      // Highlight/selection background
-    pub bg_primary: Color,     // Primary background (bars, panels)
-    pub bg_highlight: Color,   // Highlighted selection background
-    pub bg_overlay: Color,     // Overlay/modal background
+    pub primary: Color,      // Main accent/selection color
+    pub secondary: Color,    // Secondary accent
+    pub text: Color,         // Normal text
+    pub text_dim: Color,     // Dimmed/secondary text
+    pub border: Color,       // Borders
+    pub success: Color,      // Green/success
+    pub warning: Color,      // Yellow/warning
+    pub error: Color,        // Red/error
+    pub info: Color,         // Blue/info
+    pub highlight: Color,    // Highlight/selection background
+    pub bg_primary: Color,   // Primary background (bars, panels)
+    pub bg_highlight: Color, // Highlighted selection background
+    pub bg_overlay: Color,   // Overlay/modal background
 }
 
 impl Default for ThemeColors {
     fn default() -> Self {
-        // Fallback to trex's original green theme
+        // Fallback: eza-compatible jungle theme using ANSI named colors.
+        // These adapt to the terminal's configured palette, matching how
+        // eza renders its output. Green/Cyan/Yellow/Red/Blue map directly
+        // to eza's core color assignments.
         ThemeColors {
-            primary: Color::Rgb(80, 200, 120),
-            secondary: Color::Rgb(40, 180, 60),
+            primary: Color::Green,
+            secondary: Color::Cyan,
             text: Color::White,
             text_dim: Color::DarkGray,
             border: Color::Green,
@@ -60,9 +63,9 @@ impl Default for ThemeColors {
             error: Color::Red,
             info: Color::Blue,
             highlight: Color::DarkGray,
-            bg_primary: Color::Rgb(10, 15, 20),
-            bg_highlight: Color::Rgb(20, 30, 40),
-            bg_overlay: Color::Rgb(5, 10, 15),
+            bg_primary: Color::Black,
+            bg_highlight: Color::DarkGray,
+            bg_overlay: Color::Black,
         }
     }
 }
@@ -72,19 +75,18 @@ fn parse_hex_color(hex: &str) -> Option<Color> {
     if hex.len() != 6 {
         return None;
     }
-    
+
     let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
     let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
     let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
-    
+
     Some(Color::Rgb(r, g, b))
 }
 
 fn load_omarchy_theme() -> Option<OmarchyTheme> {
     let home = std::env::var("HOME").ok()?;
-    let theme_path = PathBuf::from(home)
-        .join(".config/omarchy/current/theme/colors.toml");
-    
+    let theme_path = PathBuf::from(home).join(".config/omarchy/current/theme/colors.toml");
+
     let contents = fs::read_to_string(theme_path).ok()?;
     toml::from_str(&contents).ok()
 }
