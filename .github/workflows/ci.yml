@@ -55,7 +55,7 @@ jobs:
     name: Publish to crates.io
     needs: test
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.server_url == 'https://github.com' && startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
 
@@ -73,7 +73,7 @@ jobs:
     name: Build ${{ matrix.target }}
     needs: test
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.server_url == 'https://github.com' && startsWith(github.ref, 'refs/tags/v')
     strategy:
       matrix:
         include:
@@ -137,7 +137,7 @@ jobs:
     name: Create GitHub Release
     needs: build-release
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.server_url == 'https://github.com' && startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
 
