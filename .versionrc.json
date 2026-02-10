@@ -1,0 +1,16 @@
+{
+  "packageFiles": [
+    {
+      "filename": "Cargo.toml",
+      "updater": "scripts/cargo-version.js"
+    }
+  ],
+  "bumpFiles": [
+    {
+      "filename": "Cargo.toml",
+      "updater": "scripts/cargo-version.js"
+    }
+  ],
+  "tagPrefix": "v",
+  "releaseCommitMessageFormat": "chore(release): bump version to {{currentTag}}"
+}

@@ -28,6 +28,7 @@ DIST_DIR := dist
         uninstall uninstall-user \
         run run-ascii doc \
         test fmt fmt-check lint check pre-release pre-commit \
+        version bump-patch bump-minor bump-major bump-dry \
         dist dist-all clean help
 
 # Default target: show help
@@ -180,6 +181,31 @@ doc:
 pre-commit:
 	python3 -m pre_commit run --all-files
 
+# ─── Version Management ────────────────────────────────────────────
+
+# Show current version
+version:
+	@echo "$(BINARY) $(VERSION)"
+
+# Bump patch version (0.4.x) - updates Cargo.toml, CHANGELOG.md, commits, tags
+bump-patch: pre-release
+	npx commit-and-tag-version --release-as patch --no-verify
+	@echo "Run 'git push --follow-tags' to publish"
+
+# Bump minor version (0.x.0)
+bump-minor: pre-release
+	npx commit-and-tag-version --release-as minor --no-verify
+	@echo "Run 'git push --follow-tags' to publish"
+
+# Bump major version (x.0.0)
+bump-major: pre-release
+	npx commit-and-tag-version --release-as major --no-verify
+	@echo "Run 'git push --follow-tags' to publish"
+
+# Preview version bump without making changes
+bump-dry:
+	npx commit-and-tag-version --dry-run
+
 # Full pre-release validation
 pre-release:
 	@echo "══════════════════════════════════════════════"
@@ -253,6 +279,13 @@ help:
 	@echo "  make pre-commit        Run pre-commit hooks on all files"
 	@echo "  make pre-release       Full pre-release validation"
 	@echo "  make clean             Remove build artifacts"
+	@echo ""
+	@echo "Version Management:"
+	@echo "  make version           Show current version"
+	@echo "  make bump-patch        Bump patch version (0.4.x)"
+	@echo "  make bump-minor        Bump minor version (0.x.0)"
+	@echo "  make bump-major        Bump major version (x.0.0)"
+	@echo "  make bump-dry          Preview version bump (dry run)"
 	@echo ""
 	@echo "Variables:"
 	@echo "  PREFIX=$(PREFIX)       Installation prefix"
