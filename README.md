@@ -1,3 +1,7 @@
+[![CI](https://github.com/blackopsrepl/trex/actions/workflows/ci.yml/badge.svg)](https://github.com/blackopsrepl/trex/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/trex.svg)](https://crates.io/crates/trex)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
+
 # trex
 
 A tmux session manager with real-time system monitoring and AI agent tracking.
@@ -194,15 +198,24 @@ src/
 ## Development
 
 ```
-make              Build release binary
-make static       Static x86_64 binary (musl)
-make static-arm   Static aarch64 binary (musl)
-make test         Run tests
-make lint         Run clippy
-make fmt          Format code
-make check        Type-check without building
-make clean        Remove build artifacts
-make help         Show all targets
+make build             Debug build
+make build-ascii       Debug build with ascii-art feature
+make release           Optimized release build
+make release-ascii     Release build with ascii-art feature
+make static            Static x86_64 binary (musl)
+make static-arm        Static aarch64 binary (musl)
+make run               Run debug build
+make run-ascii         Run with ascii-art feature
+make test              Run tests
+make lint              Run clippy
+make fmt               Format code
+make fmt-check         Check formatting (no changes)
+make check             Type-check without building
+make doc               Generate and open documentation
+make pre-release       Full pre-release validation
+make pre-commit        Run pre-commit hooks
+make clean             Remove build artifacts
+make help              Show all targets
 ```
 
 ## License
