@@ -1,5 +1,5 @@
 [package]
-name = "trex"
+name = "trex-cli"
 version = "0.4.1"
 edition = "2024"
 description = "Fast tmux session manager with fuzzy finding, system monitoring, and AI agent tracking"
@@ -30,6 +30,10 @@ exclude = [
     "linkedin-post-*",
     "progress.txt",
 ]
+
+[[bin]]
+name = "trex"
+path = "src/main.rs"
 
 [features]
 ascii-art = []
