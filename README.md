@@ -3,6 +3,8 @@
 A tmux session manager with real-time system monitoring and AI agent tracking.
 Built in Rust with [ratatui](https://github.com/ratatui-org/ratatui). Designed for [Omarchy](https://github.com/basecamp/omarchy).
 
+![trex screenshot](screenshot.png)
+
 ## What It Does
 
 trex replaces the tmux session workflow -- listing, switching, creating, killing -- with an interactive TUI that shows you what's actually happening inside each session.
