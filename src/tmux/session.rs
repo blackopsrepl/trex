@@ -20,8 +20,8 @@ pub struct TmuxSession {
     pub last_activity: Option<u64>,
     pub git_status: Option<GitStatus>,
     pub stats: Option<SessionStats>,
-    pub cpu_history: Vec<u64>,  // Last 20 samples for sparkline
-    pub mem_history: Vec<u64>,  // Last 20 samples for sparkline
+    pub cpu_history: Vec<u64>, // Last 20 samples for sparkline
+    pub mem_history: Vec<u64>, // Last 20 samples for sparkline
 }
 
 impl TmuxSession {

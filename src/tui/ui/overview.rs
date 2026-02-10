@@ -1,10 +1,10 @@
 use crate::tui::app::App;
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, BorderType, Borders, Paragraph},
-    Frame,
 };
 
 // Pulsing dot animation frames

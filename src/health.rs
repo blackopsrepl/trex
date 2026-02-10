@@ -1,4 +1,4 @@
-use crate::tmux::{TmuxSession, ActivityLevel};
+use crate::tmux::{ActivityLevel, TmuxSession};
 
 /// Health score from 0-100 based on multiple factors
 #[derive(Debug, Clone, Copy)]
@@ -8,9 +8,9 @@ pub struct HealthScore {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum HealthLevel {
-    Healthy,   // 70-100
-    Warning,   // 40-69
-    Critical,  // 0-39
+    Healthy,  // 70-100
+    Warning,  // 40-69
+    Critical, // 0-39
 }
 
 impl HealthScore {
@@ -58,7 +58,9 @@ impl HealthScore {
             None => 5,
         };
 
-        let total_penalty = cpu_penalty.saturating_add(mem_penalty).saturating_add(activity_penalty);
+        let total_penalty = cpu_penalty
+            .saturating_add(mem_penalty)
+            .saturating_add(activity_penalty);
         let score = 100u8.saturating_sub(total_penalty);
 
         Self { score }

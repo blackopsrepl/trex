@@ -1,11 +1,11 @@
 use crate::tmux::ActivityLevel;
 use crate::tui::app::App;
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Gauge, Paragraph, Sparkline},
-    Frame,
 };
 
 pub fn render_session_header(

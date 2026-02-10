@@ -1,9 +1,9 @@
 use crate::tui::app::{App, AppMode, FocusArea};
 use ratatui::{
+    Frame,
     layout::Rect,
     style::Style,
     widgets::{Block, BorderType, Borders, Paragraph},
-    Frame,
 };
 
 use super::session_row::{render_session_gauges, render_session_header};

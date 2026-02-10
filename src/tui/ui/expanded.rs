@@ -1,10 +1,10 @@
 use crate::tui::app::App;
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, BorderType, Borders, List, ListItem, Paragraph},
-    Frame,
 };
 
 use super::agents::render_agent_box;

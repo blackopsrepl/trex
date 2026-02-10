@@ -1,11 +1,11 @@
 use crate::process::ProcessState;
 use crate::tui::app::{App, AppMode, FocusArea};
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, BorderType, Borders, Paragraph},
-    Frame,
 };
 
 pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
