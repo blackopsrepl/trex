@@ -4,6 +4,10 @@
 
 # trex
 
+<p align="center">
+  <img src="assets/trex-mascot.png" alt="trex mascot" width="260">
+</p>
+
 A tmux session manager with real-time system monitoring and AI agent tracking.
 Built in Rust with [ratatui](https://github.com/ratatui-org/ratatui). Designed for [Omarchy](https://github.com/basecamp/omarchy).
 

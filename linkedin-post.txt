@@ -1,0 +1,30 @@
+I just published trex -- a terminal UI for managing tmux sessions, written in Rust.
+
+If you spend your day in tmux, you know the pain: dozens of sessions, no idea what's running where, constantly attaching to the wrong one. trex fixes that.
+
+What it does:
+
+- Real-time CPU and memory gauges per session with sparkline history charts
+- Health scores combining CPU, memory, and activity into a single green/yellow/red indicator
+- AI agent tracking -- detects running Claude, OpenCode, and other coding agents across sessions, shows whether they're active or idle
+- Live pane preview so you can see what's happening before you switch
+- Fuzzy search powered by nucleo (same engine as the Helix editor)
+- Inline git status: branch, dirty files, ahead/behind upstream
+- Directory picker with filesystem-wide scan for creating new sessions
+- Bar chart and stats overlay views for comparing resource usage across all sessions
+
+The technical bits I'm most pleased with:
+
+Zero-dependency system monitoring. Reads /proc directly -- no sysinfo crate, no shelling out to ps. Delta-based CPU calculation from tick counts against system uptime.
+
+Tiered refresh architecture. Three independent timers (100ms / 1s / 2s) balancing responsiveness with efficiency.
+
+~4,450 lines of Rust, 7 dependencies. Ships as a static musl binary for x86_64 and aarch64.
+
+Built for Omarchy (Basecamp's open-source Linux desktop environment) -- auto-adapts to your theme colors -- but works standalone on any Linux system with tmux.
+
+Install: cargo install trex
+
+https://github.com/blackopsrepl/trex
+
+#rust #linux #tmux #terminal #opensource #devtools
