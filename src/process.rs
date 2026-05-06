@@ -4,7 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
-const AI_PROCESSES: &[&str] = &["claude", "opencode", "zoyd", "openclaw"];
+const AI_PROCESSES: &[&str] = &["claude", "codex", "opencode", "zoyd", "openclaw"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum ProcessState {
@@ -98,11 +98,7 @@ pub fn process_exists(pid: u32) -> bool {
 
 fn get_process_info(pid: u32, tty_session_map: &HashMap<String, String>) -> Result<AiProcessInfo> {
     let comm = read_comm(pid)?;
-    let process_name = AI_PROCESSES
-        .iter()
-        .find(|&&name| comm.to_lowercase().contains(name))
-        .map(|&name| name.to_string())
-        .context("Not an AI process")?;
+    let process_name = ai_process_name(&comm).context("Not an AI process")?;
 
     let project_name = read_cwd(pid)?
         .file_name()
@@ -128,6 +124,14 @@ fn read_comm(pid: u32) -> Result<String> {
     fs::read_to_string(&path)
         .map(|s| s.trim().to_string())
         .context("Failed to read comm")
+}
+
+fn ai_process_name(comm: &str) -> Option<String> {
+    let comm = comm.to_lowercase();
+    AI_PROCESSES
+        .iter()
+        .find(|&&name| comm.contains(name))
+        .map(|&name| name.to_string())
 }
 
 fn read_cwd(pid: u32) -> Result<PathBuf> {
@@ -230,6 +234,12 @@ mod tests {
         // The function should return a valid state (not panic)
         // State could be Running, Waiting, or Unknown depending on timing
         let _ = state;
+    }
+
+    #[test]
+    fn test_ai_process_name_detects_codex() {
+        assert_eq!(ai_process_name("codex"), Some("codex".to_string()));
+        assert_eq!(ai_process_name("node"), None);
     }
 
     #[test]
