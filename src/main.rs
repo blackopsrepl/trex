@@ -1,10 +1,4 @@
-mod directory;
-mod git;
-mod health;
-mod process;
-mod sysinfo;
-mod theme;
-mod tmux;
+pub use trex_cli::{directory, git, health, process, sysinfo, theme, tmux};
 mod tui;
 
 use crate::git::GitStatus;
@@ -46,6 +40,12 @@ fn ensure_terminal() -> Result<()> {
 }
 
 fn main() -> Result<()> {
+    if std::env::args().skip(1).collect::<Vec<_>>() == ["snapshot", "--json"] {
+        let snapshot = trex_cli::backend::collect_snapshot()?;
+        println!("{}", serde_json::to_string(&snapshot)?);
+        return Ok(());
+    }
+
     ensure_terminal()?;
 
     TmuxClient::check_installed()?;
