@@ -74,7 +74,7 @@ fn render_cpu_barchart(frame: &mut Frame, app: &App, area: Rect) {
         .collect();
 
     // Sort by CPU descending and take top 10
-    data.sort_by(|a, b| b.1.cmp(&a.1));
+    data.sort_by_key(|item| std::cmp::Reverse(item.1));
     data.truncate(10);
 
     if data.is_empty() {
@@ -140,7 +140,7 @@ fn render_memory_barchart(frame: &mut Frame, app: &App, area: Rect) {
         .collect();
 
     // Sort by memory descending and take top 10
-    data.sort_by(|a, b| b.1.cmp(&a.1));
+    data.sort_by_key(|item| std::cmp::Reverse(item.1));
     data.truncate(10);
 
     if data.is_empty() {

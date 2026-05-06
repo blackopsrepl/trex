@@ -116,7 +116,7 @@ fn render_top_memory(frame: &mut Frame, app: &App, area: Rect) {
         .iter()
         .filter_map(|s| s.stats.as_ref().map(|stats| (s, stats)))
         .collect();
-    sessions.sort_by(|a, b| b.1.mem_mb.cmp(&a.1.mem_mb));
+    sessions.sort_by_key(|item| std::cmp::Reverse(item.1.mem_mb));
 
     let mut lines = Vec::new();
     for (i, (session, stats)) in sessions.iter().take(5).enumerate() {
@@ -251,7 +251,7 @@ fn render_activity_timeline(frame: &mut Frame, app: &App, area: Rect) {
         .iter()
         .filter_map(|s| s.last_activity.map(|ts| (s, ts)))
         .collect();
-    sessions_with_activity.sort_by(|a, b| b.1.cmp(&a.1));
+    sessions_with_activity.sort_by_key(|item| std::cmp::Reverse(item.1));
 
     let mut lines = Vec::new();
     for (session, _) in sessions_with_activity.iter().take(10) {

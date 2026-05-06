@@ -85,33 +85,23 @@ fn handle_normal_mode(app: &mut App, code: KeyCode, _matcher: &mut nucleo::Match
             FocusArea::Agents => app.attach_selected_agent(),
             FocusArea::Sessions => app.attach_selected(),
         },
-        KeyCode::Char('d') => {
-            if app.focus == FocusArea::Sessions {
-                app.delete_selected();
-            }
+        KeyCode::Char('d') if app.focus == FocusArea::Sessions => {
+            app.delete_selected();
         }
-        KeyCode::Char('D') => {
-            if app.focus == FocusArea::Sessions {
-                app.delete_all();
-            }
+        KeyCode::Char('D') if app.focus == FocusArea::Sessions => {
+            app.delete_all();
         }
-        KeyCode::Char('x') => {
-            if app.focus == FocusArea::Sessions {
-                app.detach_selected();
-            }
+        KeyCode::Char('x') if app.focus == FocusArea::Sessions => {
+            app.detach_selected();
         }
-        KeyCode::Char('X') => {
-            if app.focus == FocusArea::Sessions {
-                app.detach_all();
-            }
+        KeyCode::Char('X') if app.focus == FocusArea::Sessions => {
+            app.detach_all();
         }
         KeyCode::Char('c') => app.mode = AppMode::SelectingDirectory,
 
         // Window expansion (only from session focus)
-        KeyCode::Char('l') | KeyCode::Right => {
-            if app.focus == FocusArea::Sessions {
-                app.expand_selected();
-            }
+        KeyCode::Char('l') | KeyCode::Right if app.focus == FocusArea::Sessions => {
+            app.expand_selected();
         }
 
         // Preview toggle

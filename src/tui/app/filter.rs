@@ -27,7 +27,7 @@ impl App {
                 })
                 .collect();
 
-            results.sort_by(|a, b| b.1.cmp(&a.1));
+            results.sort_by_key(|item| std::cmp::Reverse(item.1));
             self.filtered_indices = results.into_iter().map(|(idx, _)| idx).collect();
         }
 
