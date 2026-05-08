@@ -1,191 +1,55 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+All notable changes to this project are documented in this file. The format follows Conventional Commits.
 
-## 0.4.1 (2026-02-10)
-
-
-### Features
-
-* add git repository status integration 0789183
-* **health:** add session health scoring algorithm 0dc7175
-* initialize project 20e933b
-* **process:** add child_ai_names field to AiProcessInfo struct 63b9d82
-* **process:** add openclaw to AI process detection e50033a
-* **process:** detect parent-child relationships in find_ai_processes e194606
-* **process:** filter child AI processes from results, return only root processes 5482b4c
-* **process:** initialize child_ai_names field in get_process_info 20cf894
-* **sysinfo:** add per-session CPU/memory stats via /proc scanning 6e62c75
-* **theme:** add gradient_color() that interpolates success/warning/error 8312fe3
-* **theme:** add Omarchy theme integration with automatic color scheme loading 39e2326
-* **theme:** derive Omarchy background colors from theme instead of hardcoding 136eaa5
-* **theme:** use eza-compatible ANSI named colors for default theme 82745ca
-* **tmux:** add session activity tracking 20468a5
-* **tui:** add ASCII T-Rex background decoration 219c61d
-* **tui:** add bar chart view and stats overlay modes dd36e54
-* **tui:** add directory name sanitization and TUI cues 9820a0b
-* **tui:** add red eye to T-Rex ascii art 2c3336a
-* **tui:** add window expansion and live preview 99d21c6
-* **tui:** append child AI names after tmux icon in normal mode 8237303
-* **tui:** apply theme colors to expanded, directory, and naming views b899f25
-* **tui:** increase COL_WIDTH from 30 to 38 characters 633ff88
-* **tui:** make T-Rex ASCII art optional at compile time via feature flag ba1a5ef
-* **tui:** redesign normal mode with system overview, gauges, sparklines, and scrollbar 6b38ce5
-* **tui:** use theme-aware green-to-amber gradient for T-Rex background art 4be776f
-* **tui:** wire theme, stats, and health into app state and event loop e6e4ac7
-
-
-### Bug Fixes
-
-* **ci:** correct rust-toolchain action name in release workflow 449e1f0
-* **ci:** replace dtolnay/rust-toolchain with rustup for Forgejo compatibility aea27d0
-* **ci:** skip publish and release jobs on Forgejo runners 79931e7
-* **directory:** use file_type() instead of metadata() for symlink detection f643bc7
-* replace useless vec! with a static slice in expanded help fea97ee
-* **tmux:** remove -a flag from list-panes to isolate PIDs per session aa341d7
-* **tmux:** sanitize session names to handle dots in directory names 0432935
-* **tui:** make ui helper functions public for internal module access eb68397
-* **tui:** require '/' to enter filter mode a20de69
-* **tui:** set gauge background to theme bg_primary to eliminate grey unfilled area 00288cc
-* **tui:** set sparkline background to theme bg_primary to eliminate grey area 289b4f0
-
-## 0.4.1 (2026-02-10)
-
+## 0.5.0 (2026-05-08)
 
 ### Features
 
-* add git repository status integration 0789183
-* **health:** add session health scoring algorithm 0dc7175
-* initialize project 20e933b
-* **process:** add child_ai_names field to AiProcessInfo struct 63b9d82
-* **process:** add openclaw to AI process detection e50033a
-* **process:** detect parent-child relationships in find_ai_processes e194606
-* **process:** filter child AI processes from results, return only root processes 5482b4c
-* **process:** initialize child_ai_names field in get_process_info 20cf894
-* **sysinfo:** add per-session CPU/memory stats via /proc scanning 6e62c75
-* **theme:** add gradient_color() that interpolates success/warning/error 8312fe3
-* **theme:** add Omarchy theme integration with automatic color scheme loading 39e2326
-* **theme:** derive Omarchy background colors from theme instead of hardcoding 136eaa5
-* **theme:** use eza-compatible ANSI named colors for default theme 82745ca
-* **tmux:** add session activity tracking 20468a5
-* **tui:** add ASCII T-Rex background decoration 219c61d
-* **tui:** add bar chart view and stats overlay modes dd36e54
-* **tui:** add directory name sanitization and TUI cues 9820a0b
-* **tui:** add red eye to T-Rex ascii art 2c3336a
-* **tui:** add window expansion and live preview 99d21c6
-* **tui:** append child AI names after tmux icon in normal mode 8237303
-* **tui:** apply theme colors to expanded, directory, and naming views b899f25
-* **tui:** increase COL_WIDTH from 30 to 38 characters 633ff88
-* **tui:** make T-Rex ASCII art optional at compile time via feature flag ba1a5ef
-* **tui:** redesign normal mode with system overview, gauges, sparklines, and scrollbar 6b38ce5
-* **tui:** use theme-aware green-to-amber gradient for T-Rex background art 4be776f
-* **tui:** wire theme, stats, and health into app state and event loop e6e4ac7
-
+- Expose `trex snapshot --json` as a read-only backend for desktop and status-bar integrations.
+- Export library modules through `src/lib.rs` so the snapshot backend can share the same tmux, git, health, process, sysinfo, and theme contracts as the TUI.
 
 ### Bug Fixes
 
-* **ci:** correct rust-toolchain action name in release workflow 449e1f0
-* **ci:** replace dtolnay/rust-toolchain with rustup for Forgejo compatibility aea27d0
-* **ci:** skip publish and release jobs on Forgejo runners 79931e7
-* **directory:** use file_type() instead of metadata() for symlink detection f643bc7
-* replace useless vec! with a static slice in expanded help fea97ee
-* **tmux:** remove -a flag from list-panes to isolate PIDs per session aa341d7
-* **tmux:** sanitize session names to handle dots in directory names 0432935
-* **tui:** make ui helper functions public for internal module access eb68397
-* **tui:** require '/' to enter filter mode a20de69
-* **tui:** set gauge background to theme bg_primary to eliminate grey unfilled area 00288cc
-* **tui:** set sparkline background to theme bg_primary to eliminate grey area 289b4f0
+- Detect Codex processes in the AI agent scanner.
+
+### Documentation
+
+- Add current agent guidance in `AGENTS.md`.
+- Add mascot artwork to the README.
+- Add the current JSON snapshot contract to the README.
+- Add `WIREFRAME.md` as the shipped visual and integration contract.
+- Remove the completed historical `PRD.md` so there is no stale active-plan document in the project root.
+- Remove stale Claude project config and old 0.3.0 launch-copy collateral.
+- Update remaining launch copy for Codex detection, JSON snapshots, and the `trex-cli` crate name.
+
+### Maintenance
+
+- Optimize the mascot PNG for repository and release hygiene.
+- Simplify TUI ordering handlers.
 
 ## 0.4.1 (2026-02-10)
 
-
 ### Features
 
-* add git repository status integration 0789183
-* **health:** add session health scoring algorithm 0dc7175
-* initialize project 20e933b
-* **process:** add child_ai_names field to AiProcessInfo struct 63b9d82
-* **process:** add openclaw to AI process detection e50033a
-* **process:** detect parent-child relationships in find_ai_processes e194606
-* **process:** filter child AI processes from results, return only root processes 5482b4c
-* **process:** initialize child_ai_names field in get_process_info 20cf894
-* **sysinfo:** add per-session CPU/memory stats via /proc scanning 6e62c75
-* **theme:** add gradient_color() that interpolates success/warning/error 8312fe3
-* **theme:** add Omarchy theme integration with automatic color scheme loading 39e2326
-* **theme:** derive Omarchy background colors from theme instead of hardcoding 136eaa5
-* **theme:** use eza-compatible ANSI named colors for default theme 82745ca
-* **tmux:** add session activity tracking 20468a5
-* **tui:** add ASCII T-Rex background decoration 219c61d
-* **tui:** add bar chart view and stats overlay modes dd36e54
-* **tui:** add directory name sanitization and TUI cues 9820a0b
-* **tui:** add red eye to T-Rex ascii art 2c3336a
-* **tui:** add window expansion and live preview 99d21c6
-* **tui:** append child AI names after tmux icon in normal mode 8237303
-* **tui:** apply theme colors to expanded, directory, and naming views b899f25
-* **tui:** increase COL_WIDTH from 30 to 38 characters 633ff88
-* **tui:** make T-Rex ASCII art optional at compile time via feature flag ba1a5ef
-* **tui:** redesign normal mode with system overview, gauges, sparklines, and scrollbar 6b38ce5
-* **tui:** use theme-aware green-to-amber gradient for T-Rex background art 4be776f
-* **tui:** wire theme, stats, and health into app state and event loop e6e4ac7
-
+- Add git repository status integration.
+- Add session health scoring.
+- Add per-session CPU and memory stats through `/proc` scanning.
+- Add Omarchy theme integration with automatic color scheme loading.
+- Add tmux session activity tracking.
+- Add optional ASCII T-Rex background decoration through the `ascii-art` feature.
+- Add bar chart and stats overlay modes.
+- Add directory selection and safe session-name derivation.
+- Add window expansion and live pane preview.
+- Add grouped AI process display for parent-child agent relationships.
+- Redesign normal mode with system overview, gauges, sparklines, and scrollbar.
 
 ### Bug Fixes
 
-* **ci:** correct rust-toolchain action name in release workflow 449e1f0
-* **ci:** replace dtolnay/rust-toolchain with rustup for Forgejo compatibility aea27d0
-* **ci:** skip publish and release jobs on Forgejo runners 79931e7
-* **directory:** use file_type() instead of metadata() for symlink detection f643bc7
-* replace useless vec! with a static slice in expanded help fea97ee
-* **tmux:** remove -a flag from list-panes to isolate PIDs per session aa341d7
-* **tmux:** sanitize session names to handle dots in directory names 0432935
-* **tui:** make ui helper functions public for internal module access eb68397
-* **tui:** require '/' to enter filter mode a20de69
-* **tui:** set gauge background to theme bg_primary to eliminate grey unfilled area 00288cc
-* **tui:** set sparkline background to theme bg_primary to eliminate grey area 289b4f0
-
-## 0.4.1 (2026-02-10)
-
-
-### Features
-
-* add git repository status integration 0789183
-* **health:** add session health scoring algorithm 0dc7175
-* initialize project 20e933b
-* **process:** add child_ai_names field to AiProcessInfo struct 63b9d82
-* **process:** add openclaw to AI process detection e50033a
-* **process:** detect parent-child relationships in find_ai_processes e194606
-* **process:** filter child AI processes from results, return only root processes 5482b4c
-* **process:** initialize child_ai_names field in get_process_info 20cf894
-* **sysinfo:** add per-session CPU/memory stats via /proc scanning 6e62c75
-* **theme:** add gradient_color() that interpolates success/warning/error 8312fe3
-* **theme:** add Omarchy theme integration with automatic color scheme loading 39e2326
-* **theme:** derive Omarchy background colors from theme instead of hardcoding 136eaa5
-* **theme:** use eza-compatible ANSI named colors for default theme 82745ca
-* **tmux:** add session activity tracking 20468a5
-* **tui:** add ASCII T-Rex background decoration 219c61d
-* **tui:** add bar chart view and stats overlay modes dd36e54
-* **tui:** add directory name sanitization and TUI cues 9820a0b
-* **tui:** add red eye to T-Rex ascii art 2c3336a
-* **tui:** add window expansion and live preview 99d21c6
-* **tui:** append child AI names after tmux icon in normal mode 8237303
-* **tui:** apply theme colors to expanded, directory, and naming views b899f25
-* **tui:** increase COL_WIDTH from 30 to 38 characters 633ff88
-* **tui:** make T-Rex ASCII art optional at compile time via feature flag ba1a5ef
-* **tui:** redesign normal mode with system overview, gauges, sparklines, and scrollbar 6b38ce5
-* **tui:** use theme-aware green-to-amber gradient for T-Rex background art 4be776f
-* **tui:** wire theme, stats, and health into app state and event loop e6e4ac7
-
-
-### Bug Fixes
-
-* **ci:** correct rust-toolchain action name in release workflow 449e1f0
-* **ci:** replace dtolnay/rust-toolchain with rustup for Forgejo compatibility aea27d0
-* **ci:** skip publish and release jobs on Forgejo runners 79931e7
-* **directory:** use file_type() instead of metadata() for symlink detection f643bc7
-* replace useless vec! with a static slice in expanded help fea97ee
-* **tmux:** remove -a flag from list-panes to isolate PIDs per session aa341d7
-* **tmux:** sanitize session names to handle dots in directory names 0432935
-* **tui:** make ui helper functions public for internal module access eb68397
-* **tui:** require '/' to enter filter mode a20de69
-* **tui:** set gauge background to theme bg_primary to eliminate grey unfilled area 00288cc
-* **tui:** set sparkline background to theme bg_primary to eliminate grey area 289b4f0
+- Correct release workflow toolchain setup.
+- Skip publish and release jobs on Forgejo runners.
+- Use `file_type()` instead of `metadata()` for symlink detection.
+- Remove `tmux list-panes -a` from per-session PID lookups.
+- Sanitize tmux session names derived from directory names.
+- Require `/` to enter filter mode.
+- Use theme backgrounds for gauges and sparklines.

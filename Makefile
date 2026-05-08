@@ -187,7 +187,7 @@ pre-commit:
 version:
 	@echo "$(BINARY) $(VERSION)"
 
-# Bump patch version (0.4.x) - updates Cargo.toml, CHANGELOG.md, commits, tags
+# Bump patch version (0.5.x) - updates Cargo.toml, CHANGELOG.md, commits, tags
 bump-patch: pre-release
 	npx commit-and-tag-version --release-as patch --no-verify
 	@echo "Run 'git push --follow-tags' to publish"
@@ -282,7 +282,7 @@ help:
 	@echo ""
 	@echo "Version Management:"
 	@echo "  make version           Show current version"
-	@echo "  make bump-patch        Bump patch version (0.4.x)"
+	@echo "  make bump-patch        Bump patch version (0.5.x)"
 	@echo "  make bump-minor        Bump minor version (0.x.0)"
 	@echo "  make bump-major        Bump major version (x.0.0)"
 	@echo "  make bump-dry          Preview version bump (dry run)"
