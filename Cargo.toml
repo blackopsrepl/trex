@@ -16,7 +16,6 @@ exclude = [
     ".claude/",
     "zoyd.toml",
     "AGENTS.md",
-    "CLAUDE.md",
     ".bash_profile",
     ".bashrc",
     ".gitconfig",
@@ -28,8 +27,9 @@ exclude = [
     ".vscode",
     ".zprofile",
     ".zshrc",
-    "PRD.md",
     "linkedin-post-*",
+    "linkedin-post.txt",
+    "x-post.txt",
     "progress.txt",
 ]
 
