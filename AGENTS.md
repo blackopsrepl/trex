@@ -31,7 +31,7 @@ When a task is simple, do the simple thing. Do not expand scope into critical pa
 
 `trex` is a Rust tmux session manager with a ratatui TUI. It lists, filters, creates, kills, and attaches to tmux sessions; shows windows and live pane previews; reports per-session CPU, memory, health, and git status; and detects AI coding agents by scanning `/proc`.
 
-Run `trex` from outside tmux. The binary exits with an error if `TMUX` is set.
+Run the interactive TUI from outside tmux. `trex snapshot --json` is non-interactive and is handled before the TTY and `TMUX` checks.
 
 ## Architecture
 
@@ -39,7 +39,9 @@ The current source layout is:
 
 ```text
 src/
+  lib.rs            Library exports for backend consumers and shared modules
   main.rs           Entry point, TTY handling, tmux action dispatch
+  backend.rs        Read-only JSON snapshot collection and DTOs
   theme.rs          Omarchy theme loading and fallback colors
   process.rs        AI agent detection through /proc scanning
   sysinfo.rs        Per-session CPU and memory stats
@@ -60,7 +62,8 @@ src/
 
 Important flows:
 
-- `src/main.rs` reconnects standard fds to `/dev/tty` when needed, checks that tmux exists, rejects running from inside tmux, loads sessions, annotates them with git status, then runs the TUI.
+- `src/main.rs` handles `trex snapshot --json` before terminal setup. The interactive path reconnects standard fds to `/dev/tty` when needed, checks that tmux exists, rejects running from inside tmux, loads sessions, annotates them with git status, then runs the TUI.
+- `src/backend.rs` is the machine-readable backend contract. It collects tmux sessions, git status, `/proc` stats, health, and AI process data into camelCase JSON DTOs. Keep it read-only; it must not attach, switch, create, delete, or detach sessions.
 - `src/tmux/commands.rs` is the only layer that shells out to tmux for session, window, pane, attach, switch, delete, and detach operations.
 - `src/tui/app/mod.rs` owns application state and exposes `SessionAction` values. The TUI exits before `main.rs` performs tmux attach/switch/create/delete operations.
 - `src/process.rs` detects supported AI tools by reading `/proc`, maps processes to tmux sessions through pane TTYs, and collapses parent-child AI process trees.
@@ -95,9 +98,11 @@ cargo check
 ## Implementation Notes
 
 - Prefer existing module boundaries. Keep tmux CLI interaction in `src/tmux/commands.rs`, parsing in `src/tmux/parser.rs` or `src/tmux/window.rs`, state transitions in `src/tui/app/`, and rendering in `src/tui/ui/`.
+- Keep snapshot schema changes explicit. `snapshotVersion` is currently `1`; bump it only for breaking JSON contract changes and update `README.md` plus `WIREFRAME.md` in the same change.
 - Do not add fallback behavior that hides broken tmux, `/proc`, terminal, or theme assumptions unless the existing code already treats that path as optional.
 - Preserve the TUI cleanup sequence before attach/switch operations. The UI must restore the terminal before `tmux` replaces the process.
 - Keep user-facing keybindings aligned with `README.md`.
+- Keep visual layout changes aligned with `WIREFRAME.md`.
 - Keep Omarchy theme behavior intact: load the configured theme when present and use the default theme when not.
 - Keep session names tmux-safe when creating sessions from directories.
 

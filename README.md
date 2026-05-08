@@ -1,5 +1,5 @@
 [![CI](https://github.com/blackopsrepl/trex/actions/workflows/ci.yml/badge.svg)](https://github.com/blackopsrepl/trex/actions/workflows/ci.yml)
-[![crates.io](https://img.shields.io/crates/v/trex.svg)](https://crates.io/crates/trex)
+[![crates.io](https://img.shields.io/crates/v/trex-cli.svg)](https://crates.io/crates/trex-cli)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
 
 # trex
@@ -21,7 +21,9 @@ trex replaces the tmux session workflow -- listing, switching, creating, killing
 
 **System monitoring.** Live per-session CPU and memory usage with color-coded gauges and sparkline history charts. Health scores (0-100) combine CPU, memory, and activity into a single indicator per session. A bar chart view (`b`) ranks sessions by resource consumption. A stats overlay (`s`) gives you the full picture: top consumers, health summary, and activity timeline.
 
-**AI agent tracking.** Detects running AI coding agents -- Claude, OpenCode, Zoyd, OpenClaw -- by scanning `/proc`. Shows activity state (running/waiting), maps agents to their tmux sessions, and displays parent-child process relationships. Navigate directly to any agent's session from the agent panel.
+**AI agent tracking.** Detects running AI coding agents -- Claude, Codex, OpenCode, Zoyd, OpenClaw -- by scanning `/proc`. Shows activity state (running/waiting), maps agents to their tmux sessions, and displays parent-child process relationships. Navigate directly to any agent's session from the agent panel.
+
+**Snapshot backend.** `trex snapshot --json` emits the same session, agent, health, git, and system data as structured JSON. This is the read-only backend contract used by companion status-bar and desktop integrations.
 
 ## Omarchy Integration
 
@@ -57,6 +59,14 @@ bind '"\C-t": "\C-a\C-ktrex\n"'
 ```
 
 ## Installation
+
+### From crates.io
+
+The published crate is `trex-cli`; the installed binary is still `trex`.
+
+```bash
+cargo install trex-cli
+```
 
 ### From Source
 
@@ -99,6 +109,44 @@ Run `trex` from outside tmux. tmux must be installed and in your PATH.
 ```bash
 trex
 ```
+
+The interactive TUI refuses to start when `TMUX` is set, because attach and switch actions need the outer terminal. The snapshot command is non-interactive and can be used from automation:
+
+```bash
+trex snapshot --json
+```
+
+### JSON Snapshot
+
+`trex snapshot --json` writes one camelCase JSON document to stdout. The command checks for `tmux`, lists sessions, enriches them with git status, `/proc` CPU/memory stats, health, and detected AI agents, then returns a status of `healthy`, `partial`, or `error`.
+
+Top-level shape:
+
+```json
+{
+  "snapshotVersion": 1,
+  "generatedAt": 1778247987000,
+  "status": "healthy",
+  "summary": {
+    "sessionCount": 3,
+    "attachedCount": 1,
+    "agentCount": 2,
+    "activeCount": 1,
+    "idleCount": 1,
+    "dormantCount": 1,
+    "unknownActivityCount": 0,
+    "dirtyRepoCount": 1,
+    "highCpuCount": 0,
+    "highMemoryCount": 0,
+    "worstHealth": "warning"
+  },
+  "sessions": [],
+  "agents": [],
+  "errors": []
+}
+```
+
+Session records include `name`, `attached`, `windows`, `path`, `lastActivity`, `activityLevel`, `activityAgo`, `stats`, `health`, `git`, and session-local `agents`. Agent records include `processName`, `projectName`, `tmuxSession`, `activityState`, `pid`, and `childAiNames`.
 
 ### Keybindings
 
@@ -144,11 +192,20 @@ trex
 | Key | Action |
 |-----|--------|
 | `j` / `k` | Navigate directories |
-| `Enter` | Create session in directory |
+| `Enter` | Continue to session naming |
 | `+` / `-` | Adjust scan depth (1-6) |
 | `Tab` | Autocomplete from selection |
 | Type | Fuzzy filter directories |
 | `Esc` | Cancel |
+
+**Session naming** (after selecting a directory)
+
+| Key | Action |
+|-----|--------|
+| Type | Edit session name |
+| `Backspace` | Delete character |
+| `Enter` | Create session with sanitized name |
+| `Esc` | Return to directory selection |
 
 **Bar chart view**
 
@@ -164,9 +221,13 @@ trex
 
 ## Architecture
 
+The shipped UI layout is documented in [WIREFRAME.md](WIREFRAME.md).
+
 ```
 src/
+  lib.rs            Library exports for the backend and shared modules
   main.rs           Entry point, TTY handling, action dispatch
+  backend.rs        JSON snapshot DTOs and read-only collection contract
   theme.rs          Omarchy theme loading and fallback
   process.rs        AI agent detection via /proc scanning
   sysinfo.rs        Per-session CPU/memory stats from /proc
@@ -180,7 +241,8 @@ src/
     window.rs       Window struct and parsing
   tui/
     mod.rs          Event loop with tiered refresh (100ms/1s/2s)
-    events.rs       Key event dispatch across 7 modes
+    events.rs       Key event dispatch across normal, filter, directory,
+                    naming, expanded, chart, and stats modes
     app/            Application state (agent, directory, filter, naming,
                     preview, session, window submodules)
     ui/             Rendering (normal, expanded, directory, naming,
@@ -195,7 +257,7 @@ src/
 | [crossterm](https://github.com/crossterm-rs/crossterm) | Terminal backend |
 | [nucleo](https://github.com/helix-editor/nucleo) | Fuzzy matching (from Helix) |
 | [anyhow](https://github.com/dtolnay/anyhow) | Error handling |
-| [toml](https://github.com/toml-rs/toml) + [serde](https://serde.rs) | Theme config parsing |
+| [toml](https://github.com/toml-rs/toml) + [serde](https://serde.rs) + [serde_json](https://github.com/serde-rs/json) | Theme parsing and JSON snapshot serialization |
 | [which](https://github.com/harryfei/which-rs) | tmux binary lookup |
 | [libc](https://github.com/rust-lang/libc) | TTY handling |
 
@@ -221,6 +283,19 @@ make pre-commit        Run pre-commit hooks
 make clean             Remove build artifacts
 make help              Show all targets
 ```
+
+`make pre-release` is the release gate. It checks formatting, clippy, tests, release build, and release build with the optional `ascii-art` feature.
+
+## Project Documentation
+
+| File | Purpose |
+|------|---------|
+| [README.md](README.md) | Public usage, installation, features, snapshot contract, and development commands |
+| [WIREFRAME.md](WIREFRAME.md) | Shipped TUI layouts, focus behavior, modes, and snapshot integration contract |
+| [AGENTS.md](AGENTS.md) | Repository guidance for coding agents and future maintenance |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+
+There is no active `PRD.md`. The previous PRD described a completed feature and was removed so the root documentation does not imply pending product work.
 
 ## License
 
