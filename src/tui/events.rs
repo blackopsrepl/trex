@@ -187,6 +187,8 @@ fn handle_naming_mode(app: &mut App, code: KeyCode) {
     match code {
         KeyCode::Enter => app.confirm_session_name(),
         KeyCode::Esc => app.cancel_naming(),
+        KeyCode::Tab => app.select_next_template(),
+        KeyCode::BackTab => app.select_previous_template(),
         KeyCode::Backspace => {
             app.session_name_input.pop();
         }

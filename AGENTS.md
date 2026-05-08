@@ -48,6 +48,7 @@ src/
   health.rs         Session health scoring
   git.rs            Git status detection
   directory.rs      Directory discovery and session-name derivation
+  template.rs       Session template definitions, built-ins, and user template loading
   tmux/
     commands.rs     Tmux CLI wrapper
     parser.rs       tmux session-output parsing
@@ -66,6 +67,7 @@ Important flows:
 - `src/backend.rs` is the machine-readable backend contract. It collects tmux sessions, git status, `/proc` stats, health, and AI process data into camelCase JSON DTOs. Keep it read-only; it must not attach, switch, create, delete, or detach sessions.
 - `src/tmux/commands.rs` is the only layer that shells out to tmux for session, window, pane, attach, switch, delete, and detach operations.
 - `src/tui/app/mod.rs` owns application state and exposes `SessionAction` values. The TUI exits before `main.rs` performs tmux attach/switch/create/delete operations.
+- `src/template.rs` affects only session creation recipes. It must not change existing sessions, snapshot collection, attach, switch, delete, detach, or theme behavior.
 - `src/process.rs` detects supported AI tools by reading `/proc`, maps processes to tmux sessions through pane TTYs, and collapses parent-child AI process trees.
 - `src/theme.rs` loads Omarchy theme colors from `~/.config/omarchy/current/theme/colors.toml` and falls back when unavailable.
 
@@ -104,6 +106,7 @@ cargo check
 - Keep user-facing keybindings aligned with `README.md`.
 - Keep visual layout changes aligned with `WIREFRAME.md`.
 - Keep Omarchy theme behavior intact: load the configured theme when present and use the default theme when not.
+- Keep template creation additive and isolated to session creation. Snapshot collection stays read-only, and tmux operations stay in `src/tmux/commands.rs`.
 - Keep session names tmux-safe when creating sessions from directories.
 
 ## Testing Notes

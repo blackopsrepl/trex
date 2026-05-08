@@ -1,5 +1,6 @@
 use crate::directory::Directory;
 use crate::process::{AiProcessInfo, find_ai_processes};
+use crate::template::SessionTemplate;
 use crate::theme::ThemeColors;
 use crate::tmux::{TmuxSession, TmuxWindow};
 
@@ -37,7 +38,11 @@ pub enum FocusArea {
 pub enum SessionAction {
     Attach(String),
     AttachWindow(String, u32),
-    Create(String, std::path::PathBuf),
+    Create {
+        name: String,
+        path: std::path::PathBuf,
+        template: SessionTemplate,
+    },
     Delete(String),
     DeleteAll,
     Detach(String),
@@ -63,6 +68,9 @@ pub struct App {
     // Session naming state
     pub session_name_input: String,
     pub selected_dir_path: Option<std::path::PathBuf>,
+    pub templates: Vec<SessionTemplate>,
+    pub template_warnings: Vec<String>,
+    pub selected_template_index: usize,
 
     // Window expansion state
     pub expanded_session: Option<String>,
@@ -103,6 +111,7 @@ impl App {
 
         let ai_processes = find_ai_processes().unwrap_or_default();
         let theme = crate::theme::load_theme();
+        let template_catalog = crate::template::TemplateCatalog::load();
 
         Self {
             sessions,
@@ -119,6 +128,9 @@ impl App {
             dir_scan_depth,
             session_name_input: String::new(),
             selected_dir_path: None,
+            templates: template_catalog.templates,
+            template_warnings: template_catalog.warnings,
+            selected_template_index: 0,
             expanded_session: None,
             expanded_windows: Vec::new(),
             selected_window_index: 0,

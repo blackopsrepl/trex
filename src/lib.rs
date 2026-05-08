@@ -4,5 +4,6 @@ pub mod git;
 pub mod health;
 pub mod process;
 pub mod sysinfo;
+pub mod template;
 pub mod theme;
 pub mod tmux;

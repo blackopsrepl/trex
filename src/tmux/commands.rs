@@ -1,3 +1,4 @@
+use crate::template::{SessionTemplate, TemplateLayout};
 use crate::tmux::parser::parse_sessions;
 use crate::tmux::session::TmuxSession;
 use crate::tmux::window::{TmuxWindow, parse_windows};
@@ -80,6 +81,146 @@ impl TmuxClient {
         if !status.success() {
             bail!("Failed to create session: {}", name);
         }
+        Ok(())
+    }
+
+    pub fn new_session_from_template(
+        name: &str,
+        working_dir: &std::path::Path,
+        template: &SessionTemplate,
+    ) -> Result<()> {
+        if template.is_terminal() {
+            return Self::new_session(name, working_dir, true);
+        }
+
+        let base_pane = Self::new_session_with_pane_id(name, working_dir)?;
+        let mut pane_ids = vec![base_pane];
+
+        if template.layout != TemplateLayout::Single {
+            let split_flag = template
+                .layout
+                .split_flag()
+                .expect("split templates have a split flag");
+            let target = pane_ids[0].clone();
+
+            for _ in template.panes.iter().skip(1) {
+                let pane_id = Self::split_pane(&target, split_flag, working_dir)?;
+                pane_ids.push(pane_id);
+            }
+
+            if let Some(layout) = template.layout.tmux_even_layout() {
+                Self::select_layout(name, layout)?;
+            }
+        }
+
+        for (pane_id, pane) in pane_ids.iter().zip(template.panes.iter()) {
+            Self::send_command_to_pane(pane_id, &pane.command)?;
+        }
+
+        if let Some(focus_pane) = pane_ids.get(template.focus_pane) {
+            Self::select_pane(focus_pane)?;
+        }
+
+        Ok(())
+    }
+
+    fn new_session_with_pane_id(name: &str, working_dir: &std::path::Path) -> Result<String> {
+        let dir_str = working_dir.to_string_lossy().to_string();
+        let output = Command::new("tmux")
+            .args([
+                "new-session",
+                "-d",
+                "-s",
+                name,
+                "-c",
+                &dir_str,
+                "-P",
+                "-F",
+                "#{pane_id}",
+            ])
+            .output()?;
+
+        if !output.status.success() {
+            bail!("Failed to create session: {}", name);
+        }
+
+        let pane_id = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if pane_id.is_empty() {
+            bail!("Failed to create session: tmux did not return a pane id");
+        }
+
+        Ok(pane_id)
+    }
+
+    fn split_pane(
+        target_pane: &str,
+        split_flag: &str,
+        working_dir: &std::path::Path,
+    ) -> Result<String> {
+        let dir_str = working_dir.to_string_lossy().to_string();
+        let output = Command::new("tmux")
+            .args([
+                "split-window",
+                split_flag,
+                "-P",
+                "-F",
+                "#{pane_id}",
+                "-t",
+                target_pane,
+                "-c",
+                &dir_str,
+            ])
+            .output()?;
+
+        if !output.status.success() {
+            bail!("Failed to split pane: {}", target_pane);
+        }
+
+        let pane_id = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if pane_id.is_empty() {
+            bail!("Failed to split pane: tmux did not return a pane id");
+        }
+
+        Ok(pane_id)
+    }
+
+    fn send_command_to_pane(pane_id: &str, command: &str) -> Result<()> {
+        if command.trim().is_empty() {
+            return Ok(());
+        }
+
+        let status = Command::new("tmux")
+            .args(["send-keys", "-t", pane_id, "--", command, "C-m"])
+            .status()?;
+
+        if !status.success() {
+            bail!("Failed to send command to pane: {}", pane_id);
+        }
+
+        Ok(())
+    }
+
+    fn select_layout(session_name: &str, layout: &str) -> Result<()> {
+        let status = Command::new("tmux")
+            .args(["select-layout", "-t", session_name, layout])
+            .status()?;
+
+        if !status.success() {
+            bail!("Failed to select layout for session: {}", session_name);
+        }
+
+        Ok(())
+    }
+
+    fn select_pane(pane_id: &str) -> Result<()> {
+        let status = Command::new("tmux")
+            .args(["select-pane", "-t", pane_id])
+            .status()?;
+
+        if !status.success() {
+            bail!("Failed to select pane: {}", pane_id);
+        }
+
         Ok(())
     }
 

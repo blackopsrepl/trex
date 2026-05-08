@@ -17,7 +17,7 @@ Built in Rust with [ratatui](https://github.com/ratatui-org/ratatui). Designed f
 
 trex replaces the tmux session workflow -- listing, switching, creating, killing -- with an interactive TUI that shows you what's actually happening inside each session.
 
-**Session management.** Fuzzy-find sessions by name or path. Expand any session to see its windows. Preview live pane content before attaching. Create sessions from a directory picker with configurable scan depth. Smart preselection matches your current working directory. Git status (branch, dirty count, ahead/behind) displayed inline.
+**Session management.** Fuzzy-find sessions by name or path. Expand any session to see its windows. Preview live pane content before attaching. Create sessions from a directory picker with configurable scan depth and template selection. Smart preselection matches your current working directory. Git status (branch, dirty count, ahead/behind) displayed inline.
 
 **System monitoring.** Live per-session CPU and memory usage with color-coded gauges and sparkline history charts. Health scores (0-100) combine CPU, memory, and activity into a single indicator per session. A bar chart view (`b`) ranks sessions by resource consumption. A stats overlay (`s`) gives you the full picture: top consumers, health summary, and activity timeline.
 
@@ -116,6 +116,38 @@ The interactive TUI refuses to start when `TMUX` is set, because attach and swit
 trex snapshot --json
 ```
 
+### Session Templates
+
+New sessions can be created from templates. Press `c`, choose a directory, then use `Tab` or `Shift+Tab` on the naming screen to choose the session layout before pressing `Enter`.
+
+Built-in templates:
+
+| Template | Layout |
+|----------|--------|
+| `terminal` | One shell pane |
+| `two-columns` | Two side-by-side shell panes |
+| `two-rows` | Two stacked shell panes |
+| `nvim-codex` | `nvim` on the left, `codex` on the right |
+
+Optional user templates live at `~/.config/trex/templates.toml`, or `$XDG_CONFIG_HOME/trex/templates.toml` when `XDG_CONFIG_HOME` is set:
+
+```toml
+[[templates]]
+id = "editor-agent"
+name = "Editor + Agent"
+description = "nvim on the left, codex on the right"
+layout = "columns"
+focus_pane = 0
+
+[[templates.panes]]
+command = "nvim"
+
+[[templates.panes]]
+command = "codex"
+```
+
+Supported layouts are `single`, `columns`, and `rows`. Empty pane commands create shell panes. Built-in template ids always win if a user template uses the same id.
+
 ### JSON Snapshot
 
 `trex snapshot --json` writes one camelCase JSON document to stdout. The command checks for `tmux`, lists sessions, enriches them with git status, `/proc` CPU/memory stats, health, and detected AI agents, then returns a status of `healthy`, `partial`, or `error`.
@@ -204,6 +236,7 @@ Session records include `name`, `attached`, `windows`, `path`, `lastActivity`, `
 |-----|--------|
 | Type | Edit session name |
 | `Backspace` | Delete character |
+| `Tab` / `Shift+Tab` | Cycle session template |
 | `Enter` | Create session with sanitized name |
 | `Esc` | Return to directory selection |
 
@@ -234,6 +267,7 @@ src/
   health.rs         Session health scoring algorithm
   git.rs            Git status detection (branch, dirty, ahead/behind)
   directory.rs      Directory discovery and session naming
+  template.rs       Session template definitions and user template loading
   tmux/
     commands.rs     Tmux CLI wrapper (sessions, windows, panes)
     session.rs      Session struct, activity levels, CWD matching

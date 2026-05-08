@@ -121,12 +121,14 @@ The focused panel uses a stronger border. `Enter` attaches to the selected agent
 | Directory      /path/to/project                                               |
 | Session name   project_name                                                   |
 | Sanitized      project_name                                                   |
+| Template       Terminal                                                       |
+| Panes          shell                                                          |
 +------------------------------------------------------------------------------+
-| type edit | Backspace delete | enter create | Esc back                        |
+| type edit | Tab template | Backspace delete | enter create | Esc back         |
 +------------------------------------------------------------------------------+
 ```
 
-After selecting a directory, trex asks for a tmux-safe session name. The final name is sanitized by `src/directory.rs` before creating the session.
+After selecting a directory, trex asks for a tmux-safe session name and lets the user cycle session templates on the same screen. The final name is sanitized by `src/directory.rs` before creating the session. The TUI still exits before `src/main.rs` applies the selected tmux template and attaches.
 
 ## Bar Chart View
 

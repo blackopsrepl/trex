@@ -96,8 +96,18 @@ pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
     };
 
     let name_changed = app.session_name_input != sanitized_name;
+    let selected_template = app.selected_template();
+    let template_name = selected_template
+        .map(|template| template.name.as_str())
+        .unwrap_or("Terminal");
+    let template_description = selected_template
+        .map(|template| template.description.as_str())
+        .unwrap_or("One shell pane in the selected directory");
+    let pane_summary = selected_template
+        .map(|template| template.pane_summary())
+        .unwrap_or_else(|| "shell".to_string());
 
-    let lines = vec![
+    let mut lines = vec![
         Line::from(""),
         Line::from(vec![
             Span::styled("    Directory  ", Style::default().fg(app.theme.text_dim)),
@@ -125,23 +135,60 @@ pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("    ", Style::default()),
+            Span::styled("    Template   ", Style::default().fg(app.theme.text_dim)),
             Span::styled(
-                "Enter",
+                template_name,
                 Style::default()
-                    .fg(app.theme.border)
+                    .fg(app.theme.secondary)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::styled(" to create  ", Style::default().fg(app.theme.text_dim)),
             Span::styled(
-                "Esc",
-                Style::default()
-                    .fg(app.theme.error)
-                    .add_modifier(Modifier::BOLD),
+                format!("  {}", template_description),
+                Style::default().fg(app.theme.text_dim),
             ),
-            Span::styled(" to go back", Style::default().fg(app.theme.text_dim)),
         ]),
+        Line::from(vec![
+            Span::styled("    Panes      ", Style::default().fg(app.theme.text_dim)),
+            Span::styled(pane_summary, Style::default().fg(app.theme.info)),
+        ]),
+        Line::from(""),
     ];
+
+    if !app.template_warnings.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("    Config     ", Style::default().fg(app.theme.text_dim)),
+            Span::styled(
+                format!("{} template warning(s)", app.template_warnings.len()),
+                Style::default().fg(app.theme.warning),
+            ),
+        ]));
+        lines.push(Line::from(""));
+    }
+
+    lines.extend([Line::from(vec![
+        Span::styled("    ", Style::default()),
+        Span::styled(
+            "Tab",
+            Style::default()
+                .fg(app.theme.secondary)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(" template  ", Style::default().fg(app.theme.text_dim)),
+        Span::styled(
+            "Enter",
+            Style::default()
+                .fg(app.theme.border)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(" to create  ", Style::default().fg(app.theme.text_dim)),
+        Span::styled(
+            "Esc",
+            Style::default()
+                .fg(app.theme.error)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(" to go back", Style::default().fg(app.theme.text_dim)),
+    ])]);
 
     let paragraph = Paragraph::new(lines).block(Block::default().borders(Borders::ALL));
 
@@ -155,7 +202,7 @@ pub fn render_naming_preview(frame: &mut Frame, app: &App, area: Rect) {
  * - Enter: Create the session
  * - Esc: Go back to directory selection */
 pub fn render_help_naming(frame: &mut Frame, app: &App, area: Rect) {
-    let help_text = "Type session name | Enter: create | Esc: back to directories";
+    let help_text = "Type session name | Tab: template | Enter: create | Esc: back";
     let paragraph = Paragraph::new(help_text).style(Style::default().fg(app.theme.text_dim));
 
     frame.render_widget(paragraph, area);

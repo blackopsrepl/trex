@@ -1,4 +1,4 @@
-pub use trex_cli::{directory, git, health, process, sysinfo, theme, tmux};
+pub use trex_cli::{directory, git, health, process, sysinfo, template, theme, tmux};
 mod tui;
 
 use crate::git::GitStatus;
@@ -76,12 +76,16 @@ fn main() -> Result<()> {
             TmuxClient::attach_or_switch_window(&session_name, window_index)?;
         }
 
-        Some(SessionAction::Create(name, path)) => {
+        Some(SessionAction::Create {
+            name,
+            path,
+            template,
+        }) => {
             let existing_sessions = TmuxClient::list_sessions()?;
             let session_exists = existing_sessions.iter().any(|s| s.name == name);
 
             if !session_exists {
-                TmuxClient::new_session(&name, &path, true)?;
+                TmuxClient::new_session_from_template(&name, &path, &template)?;
             }
 
             TmuxClient::attach(&name)?;

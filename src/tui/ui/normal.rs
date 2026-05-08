@@ -98,12 +98,18 @@ pub fn render_help(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
             ("Esc", "clear"),
             ("Tab", "nav"),
         ],
-        AppMode::SelectingDirectory | AppMode::NamingSession => vec![
+        AppMode::SelectingDirectory => vec![
             ("type", "filter"),
             ("Tab", "complete"),
             ("+/-", "depth"),
             ("↵", "name"),
             ("Esc", "cancel"),
+        ],
+        AppMode::NamingSession => vec![
+            ("type", "name"),
+            ("Tab", "template"),
+            ("↵", "create"),
+            ("Esc", "back"),
         ],
         AppMode::ExpandedSession => vec![
             ("j/k", "nav"),
