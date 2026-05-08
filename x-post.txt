@@ -1,6 +1,6 @@
-I built trex -- a tmux session manager in Rust that shows live CPU, memory, and health scores for every session. It tracks running AI coding agents (Claude, OpenCode), has fuzzy search, pane previews, git status inline, and sparkline charts. Basically htop for tmux.
+I built trex -- a tmux session manager in Rust that shows live CPU, memory, and health scores for every session. It tracks running AI coding agents (Claude, Codex, OpenCode, Zoyd, OpenClaw), has fuzzy search, pane previews, git status inline, sparkline charts, and JSON snapshots for desktop integrations. Basically htop for tmux.
 
 Built for Omarchy (Basecamp's Linux desktop), works anywhere.
 
-https://crates.io/crates/trex
+https://crates.io/crates/trex-cli
 https://github.com/blackopsrepl/trex

@@ -6,7 +6,8 @@ What it does:
 
 - Real-time CPU and memory gauges per session with sparkline history charts
 - Health scores combining CPU, memory, and activity into a single green/yellow/red indicator
-- AI agent tracking -- detects running Claude, OpenCode, and other coding agents across sessions, shows whether they're active or idle
+- AI agent tracking -- detects running Claude, Codex, OpenCode, Zoyd, OpenClaw, and other coding agents across sessions, shows whether they're active or idle
+- JSON snapshots via `trex snapshot --json` for status bars and desktop integrations
 - Live pane preview so you can see what's happening before you switch
 - Fuzzy search powered by nucleo (same engine as the Helix editor)
 - Inline git status: branch, dirty files, ahead/behind upstream
@@ -19,11 +20,11 @@ Zero-dependency system monitoring. Reads /proc directly -- no sysinfo crate, no 
 
 Tiered refresh architecture. Three independent timers (100ms / 1s / 2s) balancing responsiveness with efficiency.
 
-~4,450 lines of Rust, 7 dependencies. Ships as a static musl binary for x86_64 and aarch64.
+~4,800 lines of Rust, small direct dependency set. Ships as a static musl binary for x86_64 and aarch64.
 
 Built for Omarchy (Basecamp's open-source Linux desktop environment) -- auto-adapts to your theme colors -- but works standalone on any Linux system with tmux.
 
-Install: cargo install trex
+Install: cargo install trex-cli
 
 https://github.com/blackopsrepl/trex
 
