@@ -144,6 +144,10 @@ impl SessionTemplate {
         self.id == "terminal"
     }
 
+    pub fn split_percent(&self) -> Option<u8> {
+        (self.id == "nvim-codex").then_some(70)
+    }
+
     pub fn pane_summary(&self) -> String {
         let separator = match self.layout {
             TemplateLayout::Single => "",
@@ -258,11 +262,11 @@ fn builtin_templates() -> Vec<SessionTemplate> {
         SessionTemplate::new(
             "nvim-codex",
             "nvim + Codex",
-            "nvim on the left, Codex on the right",
+            "Codex on the left, nvim on the right",
             TemplateLayout::Columns,
             vec![
-                TemplatePane::command("nvim"),
                 TemplatePane::command("codex"),
+                TemplatePane::command("nvim"),
             ],
             0,
         ),

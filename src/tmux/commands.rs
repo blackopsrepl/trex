@@ -97,6 +97,7 @@ impl TmuxClient {
         let mut pane_ids = vec![base_pane];
 
         if template.layout != TemplateLayout::Single {
+            let split_percent = template.split_percent();
             let split_flag = template
                 .layout
                 .split_flag()
@@ -104,11 +105,13 @@ impl TmuxClient {
             let target = pane_ids[0].clone();
 
             for _ in template.panes.iter().skip(1) {
-                let pane_id = Self::split_pane(&target, split_flag, working_dir)?;
+                let pane_id = Self::split_pane(&target, split_flag, split_percent, working_dir)?;
                 pane_ids.push(pane_id);
             }
 
-            if let Some(layout) = template.layout.tmux_even_layout() {
+            if split_percent.is_none()
+                && let Some(layout) = template.layout.tmux_even_layout()
+            {
                 Self::select_layout(name, layout)?;
             }
         }
@@ -155,21 +158,19 @@ impl TmuxClient {
     fn split_pane(
         target_pane: &str,
         split_flag: &str,
+        split_percent: Option<u8>,
         working_dir: &std::path::Path,
     ) -> Result<String> {
         let dir_str = working_dir.to_string_lossy().to_string();
-        let output = Command::new("tmux")
-            .args([
-                "split-window",
-                split_flag,
-                "-P",
-                "-F",
-                "#{pane_id}",
-                "-t",
-                target_pane,
-                "-c",
-                &dir_str,
-            ])
+        let mut command = Command::new("tmux");
+        command.args(["split-window", split_flag]);
+
+        if let Some(percent) = split_percent {
+            command.args(["-p", &percent.to_string()]);
+        }
+
+        let output = command
+            .args(["-P", "-F", "#{pane_id}", "-t", target_pane, "-c", &dir_str])
             .output()?;
 
         if !output.status.success() {

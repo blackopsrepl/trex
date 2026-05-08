@@ -127,23 +127,23 @@ Built-in templates:
 | `terminal` | One shell pane |
 | `two-columns` | Two side-by-side shell panes |
 | `two-rows` | Two stacked shell panes |
-| `nvim-codex` | `nvim` on the left, `codex` on the right |
+| `nvim-codex` | Narrow `codex` pane on the left, wider `nvim` pane on the right |
 
 Optional user templates live at `~/.config/trex/templates.toml`, or `$XDG_CONFIG_HOME/trex/templates.toml` when `XDG_CONFIG_HOME` is set:
 
 ```toml
 [[templates]]
-id = "editor-agent"
-name = "Editor + Agent"
-description = "nvim on the left, codex on the right"
+id = "agent-editor"
+name = "Agent + Editor"
+description = "codex on the left, nvim on the right"
 layout = "columns"
 focus_pane = 0
 
 [[templates.panes]]
-command = "nvim"
+command = "codex"
 
 [[templates.panes]]
-command = "codex"
+command = "nvim"
 ```
 
 Supported layouts are `single`, `columns`, and `rows`. Empty pane commands create shell panes. Built-in template ids always win if a user template uses the same id.
