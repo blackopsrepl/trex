@@ -34,7 +34,10 @@ pub fn get_session_stats(session_name: &str) -> Result<SessionStats> {
     let now = Instant::now();
     let uptime = get_system_uptime()?;
 
-    let mut prev_map = PREV_SAMPLES.lock().unwrap();
+    let mut prev_map = match PREV_SAMPLES.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    };
     let prev = prev_map.get_or_insert_with(HashMap::new);
 
     let mut total_cpu = 0.0;

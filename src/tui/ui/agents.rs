@@ -7,6 +7,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, BorderType, Borders, Paragraph},
 };
+use std::borrow::Cow;
 
 pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
     let visible_agents = app.visible_agents();
@@ -96,9 +97,9 @@ pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
 
                 // Project name (truncated)
                 let display_name = if proc.project_name.len() > 12 {
-                    format!("{}...", &proc.project_name[..12])
+                    Cow::Owned(format!("{}...", &proc.project_name[..12]))
                 } else {
-                    proc.project_name.clone()
+                    Cow::Borrowed(proc.project_name.as_str())
                 };
 
                 // Text color: theme primary when selected, otherwise dimmed
@@ -132,10 +133,9 @@ pub fn render_agent_box(frame: &mut Frame, app: &App, area: Rect) {
                     )
                 };
 
-                spans.push(Span::styled(main_text.clone(), text_style));
-
                 // Add padding to reach column width
                 let current_len = 1 + activity_icon.chars().count() + main_text.chars().count();
+                spans.push(Span::styled(main_text, text_style));
                 if current_len < COL_WIDTH {
                     spans.push(Span::raw(" ".repeat(COL_WIDTH - current_len)));
                 }

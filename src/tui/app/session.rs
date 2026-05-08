@@ -87,17 +87,19 @@ impl App {
 
         for session in &mut self.sessions {
             if let Ok(stats) = crate::sysinfo::get_session_stats(&session.name) {
-                // Update current stats
-                session.stats = Some(stats.clone());
+                let cpu_percent = stats.cpu_percent;
+                let mem_mb = stats.mem_mb;
+
+                session.stats = Some(stats);
 
                 // Update CPU history (convert f64 to u64 for sparkline)
-                session.cpu_history.push(stats.cpu_percent as u64);
+                session.cpu_history.push(cpu_percent as u64);
                 if session.cpu_history.len() > MAX_HISTORY {
                     session.cpu_history.remove(0);
                 }
 
                 // Update memory history
-                session.mem_history.push(stats.mem_mb);
+                session.mem_history.push(mem_mb);
                 if session.mem_history.len() > MAX_HISTORY {
                     session.mem_history.remove(0);
                 }
