@@ -1,6 +1,23 @@
 # Changelog
 
-All notable changes to this project are documented in this file. The format follows Conventional Commits.
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## [0.6.1](///compare/v0.4.1...v0.6.1) (2026-05-16)
+
+
+### Features
+
+* expose snapshot json backend e918e3d
+* **process:** detect Gemini agents 4f4f1bd
+* **templates:** add nvim Gemini layout f4e7800
+* **templates:** add template-based session creation 6885beb
+
+
+### Bug Fixes
+
+* **cli:** handle help before terminal setup e33bc72
+* detect codex ai processes 7117798
+* **templates:** make codex the narrow nvim-codex pane f82fd22
 
 ## 0.6.1 (2026-05-16)
 
