@@ -89,7 +89,7 @@ sudo make install PREFIX=/usr/local
 Static Linux binaries (x86_64 and aarch64) are published on GitHub releases with versioned asset names:
 
 ```bash
-TREX_VERSION=0.6.1
+TREX_VERSION=0.6.2
 mkdir -p ~/.cargo/bin
 curl -fsSL "https://github.com/blackopsrepl/trex/releases/latest/download/trex-${TREX_VERSION}-linux-x86_64.tar.gz" \
   | tar -xzO "trex-${TREX_VERSION}-linux-x86_64" > ~/.cargo/bin/trex
