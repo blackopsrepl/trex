@@ -98,7 +98,8 @@ pub fn process_exists(pid: u32) -> bool {
 
 fn get_process_info(pid: u32, tty_session_map: &HashMap<String, String>) -> Result<AiProcessInfo> {
     let comm = read_comm(pid)?;
-    let process_name = ai_process_name(&comm).context("Not an AI process")?;
+    let cmdline = read_cmdline(pid).unwrap_or_default();
+    let process_name = ai_process_name(&comm, &cmdline).context("Not an AI process")?;
 
     let project_name = read_cwd(pid)?
         .file_name()
@@ -126,12 +127,83 @@ fn read_comm(pid: u32) -> Result<String> {
         .context("Failed to read comm")
 }
 
-fn ai_process_name(comm: &str) -> Option<String> {
+fn read_cmdline(pid: u32) -> Result<Vec<String>> {
+    let path = format!("/proc/{}/cmdline", pid);
+    let bytes = fs::read(&path).context("Failed to read cmdline")?;
+
+    Ok(bytes
+        .split(|byte| *byte == b'\0')
+        .filter(|arg| !arg.is_empty())
+        .map(|arg| String::from_utf8_lossy(arg).to_string())
+        .collect())
+}
+
+fn ai_process_name(comm: &str, cmdline: &[String]) -> Option<String> {
     let comm = comm.to_lowercase();
+    ai_process_name_from_token(&comm)
+        .or_else(|| ai_process_name_from_script_launcher(&comm, cmdline))
+}
+
+fn ai_process_name_from_token(token: &str) -> Option<String> {
+    let token = token.to_lowercase();
     AI_PROCESSES
         .iter()
-        .find(|&&name| comm.contains(name))
+        .find(|&&name| token.contains(name))
         .map(|&name| name.to_string())
+}
+
+fn ai_process_name_from_script_launcher(comm: &str, cmdline: &[String]) -> Option<String> {
+    if !is_script_launcher(comm, cmdline) {
+        return None;
+    }
+
+    cmdline
+        .iter()
+        .filter(|arg| looks_like_command_identity(arg))
+        .find_map(|arg| ai_process_name_from_command_identity(arg))
+}
+
+fn is_script_launcher(comm: &str, cmdline: &[String]) -> bool {
+    let comm = command_basename(comm);
+    let argv0 = cmdline
+        .first()
+        .map(|arg| command_basename(arg))
+        .unwrap_or_default();
+
+    matches!(
+        comm.as_str(),
+        "node" | "nodejs" | "node22" | "bun" | "deno" | "npm" | "npx"
+    ) || matches!(
+        argv0.as_str(),
+        "node" | "nodejs" | "node22" | "bun" | "deno" | "npm" | "npx"
+    )
+}
+
+fn looks_like_command_identity(arg: &str) -> bool {
+    arg.contains('/') || arg.starts_with('@')
+}
+
+fn ai_process_name_from_command_identity(arg: &str) -> Option<String> {
+    let arg = arg.to_lowercase();
+    let basename = command_basename(&arg);
+
+    for &name in AI_PROCESSES {
+        if basename == name
+            || basename == format!("{name}.js")
+            || basename == format!("{name}-cli")
+            || arg.contains(&format!("/{name}/"))
+            || arg.contains(&format!("/{name}-cli/"))
+            || arg.contains(&format!("@google/{name}-cli"))
+        {
+            return Some(name.to_string());
+        }
+    }
+
+    None
+}
+
+fn command_basename(value: &str) -> String {
+    value.rsplit('/').next().unwrap_or(value).to_lowercase()
 }
 
 fn read_cwd(pid: u32) -> Result<PathBuf> {
@@ -238,14 +310,41 @@ mod tests {
 
     #[test]
     fn test_ai_process_name_detects_codex() {
-        assert_eq!(ai_process_name("codex"), Some("codex".to_string()));
-        assert_eq!(ai_process_name("node"), None);
+        assert_eq!(ai_process_name("codex", &[]), Some("codex".to_string()));
+        assert_eq!(ai_process_name("node", &[]), None);
     }
 
     #[test]
     fn test_ai_process_name_detects_gemini() {
-        assert_eq!(ai_process_name("gemini"), Some("gemini".to_string()));
-        assert_eq!(ai_process_name("gemini-cli"), Some("gemini".to_string()));
+        assert_eq!(ai_process_name("gemini", &[]), Some("gemini".to_string()));
+        assert_eq!(
+            ai_process_name("gemini-cli", &[]),
+            Some("gemini".to_string())
+        );
+    }
+
+    #[test]
+    fn test_ai_process_name_detects_node_launched_gemini() {
+        let cmdline = vec![
+            "/usr/bin/node22".to_string(),
+            "/usr/local/lib/node_modules/@google/gemini-cli/bundle/gemini.js".to_string(),
+        ];
+
+        assert_eq!(
+            ai_process_name("node22", &cmdline),
+            Some("gemini".to_string())
+        );
+    }
+
+    #[test]
+    fn test_ai_process_name_ignores_unrelated_gemini_arguments() {
+        let cmdline = vec![
+            "/usr/bin/rg".to_string(),
+            "-i".to_string(),
+            "gemini|codex".to_string(),
+        ];
+
+        assert_eq!(ai_process_name("rg", &cmdline), None);
     }
 
     #[test]
