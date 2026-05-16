@@ -9,6 +9,49 @@ use anyhow::{Result, bail};
 use std::fs::OpenOptions;
 use std::os::unix::io::AsRawFd;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum StartupCommand {
+    Interactive,
+    SnapshotJson,
+    Help,
+    Version,
+}
+
+fn parse_startup_command(args: &[String]) -> StartupCommand {
+    match args {
+        [] => StartupCommand::Interactive,
+        [arg] if arg == "-h" || arg == "--help" => StartupCommand::Help,
+        [arg] if arg == "-V" || arg == "--version" => StartupCommand::Version,
+        [command, flag] if command == "snapshot" && flag == "--json" => {
+            StartupCommand::SnapshotJson
+        }
+        _ => StartupCommand::Interactive,
+    }
+}
+
+fn print_help() {
+    println!(
+        concat!(
+            "trex {} - tmux session manager\n\n",
+            "Usage:\n",
+            "  trex\n",
+            "  trex snapshot --json\n",
+            "  trex --help\n",
+            "  trex --version\n\n",
+            "Commands:\n",
+            "  snapshot --json    Emit a read-only JSON snapshot\n\n",
+            "Options:\n",
+            "  -h, --help         Show this help\n",
+            "  -V, --version      Show version"
+        ),
+        env!("CARGO_PKG_VERSION")
+    );
+}
+
+fn print_version() {
+    println!("trex {}", env!("CARGO_PKG_VERSION"));
+}
+
 /* Ensures stdin, stdout, and stderr are connected to a TTY.
  *
  * When running from keybindings or other non-standard contexts, the standard
@@ -40,10 +83,22 @@ fn ensure_terminal() -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    if std::env::args().skip(1).collect::<Vec<_>>() == ["snapshot", "--json"] {
-        let snapshot = trex_cli::backend::collect_snapshot()?;
-        println!("{}", serde_json::to_string(&snapshot)?);
-        return Ok(());
+    let args = std::env::args().skip(1).collect::<Vec<_>>();
+    match parse_startup_command(&args) {
+        StartupCommand::SnapshotJson => {
+            let snapshot = trex_cli::backend::collect_snapshot()?;
+            println!("{}", serde_json::to_string(&snapshot)?);
+            return Ok(());
+        }
+        StartupCommand::Help => {
+            print_help();
+            return Ok(());
+        }
+        StartupCommand::Version => {
+            print_version();
+            return Ok(());
+        }
+        StartupCommand::Interactive => {}
     }
 
     ensure_terminal()?;
@@ -115,4 +170,47 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn args(values: &[&str]) -> Vec<String> {
+        values.iter().map(|value| value.to_string()).collect()
+    }
+
+    #[test]
+    fn parses_non_interactive_startup_commands() {
+        assert_eq!(
+            parse_startup_command(&args(&["snapshot", "--json"])),
+            StartupCommand::SnapshotJson
+        );
+        assert_eq!(
+            parse_startup_command(&args(&["--help"])),
+            StartupCommand::Help
+        );
+        assert_eq!(parse_startup_command(&args(&["-h"])), StartupCommand::Help);
+        assert_eq!(
+            parse_startup_command(&args(&["--version"])),
+            StartupCommand::Version
+        );
+        assert_eq!(
+            parse_startup_command(&args(&["-V"])),
+            StartupCommand::Version
+        );
+    }
+
+    #[test]
+    fn defaults_to_interactive_for_unknown_args() {
+        assert_eq!(parse_startup_command(&[]), StartupCommand::Interactive);
+        assert_eq!(
+            parse_startup_command(&args(&["snapshot"])),
+            StartupCommand::Interactive
+        );
+        assert_eq!(
+            parse_startup_command(&args(&["--unknown"])),
+            StartupCommand::Interactive
+        );
+    }
 }
