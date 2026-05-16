@@ -2,16 +2,18 @@
 
 All notable changes to this project are documented in this file. The format follows Conventional Commits.
 
-## 0.5.0 (2026-05-08)
+## 0.6.1 (2026-05-16)
 
 ### Features
 
+- Gemini support: detection of `gemini` and `gemini-cli` processes, and a new `nvim-gemini` session template.
 - Expose `trex snapshot --json` as a read-only backend for desktop and status-bar integrations.
 - Export library modules through `src/lib.rs` so the snapshot backend can share the same tmux, git, health, process, sysinfo, and theme contracts as the TUI.
 
 ### Bug Fixes
 
 - Detect Codex processes in the AI agent scanner.
+- Handle `trex --help` and `trex --version` before terminal setup so they work from non-TTY shells.
 
 ### Documentation
 
