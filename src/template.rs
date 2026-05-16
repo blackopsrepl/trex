@@ -145,7 +145,7 @@ impl SessionTemplate {
     }
 
     pub fn split_percent(&self) -> Option<u8> {
-        (self.id == "nvim-codex").then_some(70)
+        (self.id == "nvim-codex" || self.id == "nvim-gemini").then_some(70)
     }
 
     pub fn pane_summary(&self) -> String {
@@ -270,6 +270,17 @@ fn builtin_templates() -> Vec<SessionTemplate> {
             ],
             0,
         ),
+        SessionTemplate::new(
+            "nvim-gemini",
+            "nvim + Gemini",
+            "Gemini on the left, nvim on the right",
+            TemplateLayout::Columns,
+            vec![
+                TemplatePane::command("gemini"),
+                TemplatePane::command("nvim"),
+            ],
+            0,
+        ),
     ]
 }
 
@@ -349,7 +360,7 @@ mod tests {
     use super::*;
 
     fn assert_skipped_with_warning(catalog: TemplateCatalog, warning: &str) {
-        assert_eq!(catalog.templates.len(), 4);
+        assert_eq!(catalog.templates.len(), 5);
         assert_eq!(catalog.warnings.len(), 1);
         assert!(catalog.warnings[0].contains(warning));
     }
@@ -363,7 +374,16 @@ mod tests {
             .map(|template| template.id.as_str())
             .collect::<Vec<_>>();
 
-        assert_eq!(ids, ["terminal", "two-columns", "two-rows", "nvim-codex"]);
+        assert_eq!(
+            ids,
+            [
+                "terminal",
+                "two-columns",
+                "two-rows",
+                "nvim-codex",
+                "nvim-gemini"
+            ]
+        );
         assert!(catalog.warnings.is_empty());
     }
 
@@ -482,7 +502,7 @@ command = ""
     fn invalid_config_keeps_builtins() {
         let catalog = TemplateCatalog::from_config_str("not = [valid");
 
-        assert_eq!(catalog.templates.len(), 4);
+        assert_eq!(catalog.templates.len(), 5);
         assert_eq!(catalog.warnings.len(), 1);
     }
 
