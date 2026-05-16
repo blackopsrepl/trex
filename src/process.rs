@@ -4,7 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
-const AI_PROCESSES: &[&str] = &["claude", "codex", "opencode", "zoyd", "openclaw"];
+const AI_PROCESSES: &[&str] = &["claude", "codex", "opencode", "zoyd", "openclaw", "gemini"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum ProcessState {
@@ -240,6 +240,12 @@ mod tests {
     fn test_ai_process_name_detects_codex() {
         assert_eq!(ai_process_name("codex"), Some("codex".to_string()));
         assert_eq!(ai_process_name("node"), None);
+    }
+
+    #[test]
+    fn test_ai_process_name_detects_gemini() {
+        assert_eq!(ai_process_name("gemini"), Some("gemini".to_string()));
+        assert_eq!(ai_process_name("gemini-cli"), Some("gemini".to_string()));
     }
 
     #[test]
