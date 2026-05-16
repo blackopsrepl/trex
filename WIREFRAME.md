@@ -4,12 +4,13 @@ This document describes the shipped trex interface and the read-only JSON snapsh
 
 ## Product Shape
 
-trex has two public surfaces:
+trex has two behavioral public surfaces plus utility flags:
 
 - `trex`: interactive ratatui tmux session manager.
 - `trex snapshot --json`: non-interactive backend snapshot for status bars, launchers, and desktop integrations.
+- `trex --help` / `trex --version`: non-interactive CLI metadata output.
 
-The TUI is stateful and can request tmux actions after terminal cleanup. The snapshot command is read-only and must not create, attach, switch, delete, or detach tmux sessions.
+The TUI is stateful and can request tmux actions after terminal cleanup. The snapshot, help, and version paths run before TTY setup and before the interactive `TMUX` rejection. The snapshot command is read-only and must not create, attach, switch, delete, or detach tmux sessions.
 
 ## Normal Mode
 
@@ -18,7 +19,7 @@ The TUI is stateful and can request tmux actions after terminal cleanup. The sna
 | trex system overview: sessions, agents, CPU, memory, health                  |
 +------------------------------------------------------------------------------+
 | RUNNING AGENTS                                                               |
-|  > codex:trex ●        claude:api ○        zoyd:ui ● (claude)                |
+|  > ▶ codex:trex ●        ⏸ claude:api ○        ▶ gemini:core ● (claude)       |
 +------------------------------------------------------------------------------+
 | Sessions (N) - activity, attached marker, health, git                         |
 | > ● ★ trex 🟢 (2 win) 12s main +2                                             |
@@ -191,6 +192,16 @@ Top-level fields:
 - `errors`: non-fatal collection errors with code, message, and optional context.
 
 Snapshot collection may return `partial` when optional enrichments fail. It still surfaces collection errors instead of hiding them behind fallback data.
+
+## Utility Commands
+
+```text
+trex --help
+  -> prints command usage and exits without opening /dev/tty
+
+trex --version
+  -> prints the Cargo package version as `trex X.Y.Z` and exits without opening /dev/tty
+```
 
 ## Theme Contract
 

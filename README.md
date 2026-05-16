@@ -21,9 +21,9 @@ trex replaces the tmux session workflow -- listing, switching, creating, killing
 
 **System monitoring.** Live per-session CPU and memory usage with color-coded gauges and sparkline history charts. Health scores (0-100) combine CPU, memory, and activity into a single indicator per session. A bar chart view (`b`) ranks sessions by resource consumption. A stats overlay (`s`) gives you the full picture: top consumers, health summary, and activity timeline.
 
-**AI agent tracking.** Detects running AI coding agents -- Claude, Codex, OpenCode, Zoyd, OpenClaw -- by scanning `/proc`. Shows activity state (running/waiting), maps agents to their tmux sessions, and displays parent-child process relationships. Navigate directly to any agent's session from the agent panel.
+**AI agent tracking.** Detects running AI coding agents -- Claude, Codex, Gemini, OpenCode, Zoyd, OpenClaw -- by scanning `/proc`. Shows activity state (running/waiting), maps agents to their tmux sessions, and displays parent-child process relationships. Navigate directly to any agent's session from the agent panel.
 
-**Snapshot backend.** `trex snapshot --json` emits the same session, agent, health, git, and system data as structured JSON. This is the read-only backend contract used by companion status-bar and desktop integrations.
+**Snapshot backend.** `trex snapshot --json` emits the same session, agent, health, git, and system data as structured JSON. This is the read-only backend contract used by companion status-bar and desktop integrations. `trex --help` and `trex --version` are also non-interactive, so they work from scripts and non-TTY shells.
 
 ## Omarchy Integration
 
@@ -78,19 +78,22 @@ cd trex
 make install-user    # installs to ~/.cargo/bin
 ```
 
-Or system-wide:
+The Makefile default prefix is `~/.cargo`. For a system-wide install, pass an explicit prefix:
 
 ```bash
-sudo make install    # installs to /usr/local/bin
+sudo make install PREFIX=/usr/local
 ```
 
 ### Prebuilt Binaries
 
-Static Linux binaries (x86_64 and aarch64) are published on GitHub releases:
+Static Linux binaries (x86_64 and aarch64) are published on GitHub releases with versioned asset names:
 
 ```bash
-curl -fsSL https://github.com/blackopsrepl/trex/releases/latest/download/trex-linux-x86_64.tar.gz \
-  | tar -xzf - -C ~/.cargo/bin
+TREX_VERSION=0.6.1
+mkdir -p ~/.cargo/bin
+curl -fsSL "https://github.com/blackopsrepl/trex/releases/latest/download/trex-${TREX_VERSION}-linux-x86_64.tar.gz" \
+  | tar -xzO "trex-${TREX_VERSION}-linux-x86_64" > ~/.cargo/bin/trex
+chmod +x ~/.cargo/bin/trex
 ```
 
 ### Static Build
@@ -110,10 +113,12 @@ Run `trex` from outside tmux. tmux must be installed and in your PATH.
 trex
 ```
 
-The interactive TUI refuses to start when `TMUX` is set, because attach and switch actions need the outer terminal. The snapshot command is non-interactive and can be used from automation:
+The interactive TUI refuses to start when `TMUX` is set, because attach and switch actions need the outer terminal. These commands are handled before terminal setup, so they can be used from automation and non-TTY shells:
 
 ```bash
 trex snapshot --json
+trex --help
+trex --version
 ```
 
 ### Session Templates
@@ -128,6 +133,7 @@ Built-in templates:
 | `two-columns` | Two side-by-side shell panes |
 | `two-rows` | Two stacked shell panes |
 | `nvim-codex` | Narrow `codex` pane on the left, wider `nvim` pane on the right |
+| `nvim-gemini` | Narrow `gemini` pane on the left, wider `nvim` pane on the right |
 
 Optional user templates live at `~/.config/trex/templates.toml`, or `$XDG_CONFIG_HOME/trex/templates.toml` when `XDG_CONFIG_HOME` is set:
 
@@ -259,8 +265,10 @@ The shipped UI layout is documented in [WIREFRAME.md](WIREFRAME.md).
 ```
 src/
   lib.rs            Library exports for the backend and shared modules
-  main.rs           Entry point, TTY handling, action dispatch
-  backend.rs        JSON snapshot DTOs and read-only collection contract
+  main.rs           Entry point, non-interactive commands, TTY handling,
+                    action dispatch
+  backend.rs        JSON snapshot collection and read-only contract
+  backend/          Snapshot DTO conversion, summary, and tests
   theme.rs          Omarchy theme loading and fallback
   process.rs        AI agent detection via /proc scanning
   sysinfo.rs        Per-session CPU/memory stats from /proc

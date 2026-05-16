@@ -29,9 +29,9 @@ When a task is simple, do the simple thing. Do not expand scope into critical pa
 
 ## Project Overview
 
-`trex` is a Rust tmux session manager with a ratatui TUI. It lists, filters, creates, kills, and attaches to tmux sessions; shows windows and live pane previews; reports per-session CPU, memory, health, and git status; and detects AI coding agents by scanning `/proc`.
+`trex` is a Rust tmux session manager with a ratatui TUI. It lists, filters, creates, kills, and attaches to tmux sessions; shows windows and live pane previews; reports per-session CPU, memory, health, and git status; and detects AI coding agents (Claude, Codex, Gemini, OpenCode, Zoyd, OpenClaw) by scanning `/proc`.
 
-Run the interactive TUI from outside tmux. `trex snapshot --json` is non-interactive and is handled before the TTY and `TMUX` checks.
+Run the interactive TUI from outside tmux. `trex snapshot --json`, `trex --help`, and `trex --version` are non-interactive and are handled before the TTY and `TMUX` checks.
 
 ## Architecture
 
@@ -40,8 +40,10 @@ The current source layout is:
 ```text
 src/
   lib.rs            Library exports for backend consumers and shared modules
-  main.rs           Entry point, TTY handling, tmux action dispatch
-  backend.rs        Read-only JSON snapshot collection and DTOs
+  main.rs           Entry point, non-interactive commands, TTY handling,
+                    tmux action dispatch
+  backend.rs        Read-only JSON snapshot collection
+  backend/          Snapshot DTO conversion, summary, and tests
   theme.rs          Omarchy theme loading and fallback colors
   process.rs        AI agent detection through /proc scanning
   sysinfo.rs        Per-session CPU and memory stats
@@ -63,7 +65,7 @@ src/
 
 Important flows:
 
-- `src/main.rs` handles `trex snapshot --json` before terminal setup. The interactive path reconnects standard fds to `/dev/tty` when needed, checks that tmux exists, rejects running from inside tmux, loads sessions, annotates them with git status, then runs the TUI.
+- `src/main.rs` handles `trex snapshot --json`, `trex --help`, and `trex --version` before terminal setup. The interactive path reconnects standard fds to `/dev/tty` when needed, checks that tmux exists, rejects running from inside tmux, loads sessions, annotates them with git status, then runs the TUI.
 - `src/backend.rs` is the machine-readable backend contract. It collects tmux sessions, git status, `/proc` stats, health, and AI process data into camelCase JSON DTOs. Keep it read-only; it must not attach, switch, create, delete, or detach sessions.
 - `src/tmux/commands.rs` is the only layer that shells out to tmux for session, window, pane, attach, switch, delete, and detach operations.
 - `src/tui/app/mod.rs` owns application state and exposes `SessionAction` values. The TUI exits before `main.rs` performs tmux attach/switch/create/delete operations.
@@ -92,8 +94,8 @@ Equivalent Cargo commands:
 cargo build
 cargo run
 cargo test
-cargo clippy --all-targets --all-features -- -D warnings
-cargo fmt --all -- --check
+cargo clippy -- -D warnings
+cargo fmt --check
 cargo check
 ```
 
