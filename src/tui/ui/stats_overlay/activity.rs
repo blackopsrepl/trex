@@ -43,7 +43,7 @@ pub(super) fn render_activity_timeline(frame: &mut Frame, app: &App, area: Rect)
             Span::styled(icon, Style::default().fg(color)),
             Span::styled(" ", Style::default()),
             Span::styled(
-                format!("{:.<25}", &session.name),
+                format!("{:.<25}", session.name),
                 Style::default().fg(app.theme.text),
             ),
             Span::styled(
