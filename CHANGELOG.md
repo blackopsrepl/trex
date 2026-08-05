@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.3](///compare/v0.6.2...v0.6.3) (2026-08-05)
+
+
+### Features
+
+* **templates:** replace nvim layouts with emacs c4279c4
+
+
+### Bug Fixes
+
+* **templates:** open Emacs in selected directory bbd4cc1
+* **tui:** remove redundant formatting borrows e318967
+
 ## [0.6.2](///compare/v0.6.1...v0.6.2) (2026-05-16)
 
 
