@@ -89,7 +89,7 @@ sudo make install PREFIX=/usr/local
 Static Linux binaries (x86_64 and aarch64) are published on GitHub releases with versioned asset names:
 
 ```bash
-TREX_VERSION=0.6.2
+TREX_VERSION=0.6.3
 mkdir -p ~/.cargo/bin
 curl -fsSL "https://github.com/blackopsrepl/trex/releases/latest/download/trex-${TREX_VERSION}-linux-x86_64.tar.gz" \
   | tar -xzO "trex-${TREX_VERSION}-linux-x86_64" > ~/.cargo/bin/trex
@@ -132,8 +132,10 @@ Built-in templates:
 | `terminal` | One shell pane |
 | `two-columns` | Two side-by-side shell panes |
 | `two-rows` | Two stacked shell panes |
-| `nvim-codex` | Narrow `codex` pane on the left, wider `nvim` pane on the right |
-| `nvim-gemini` | Narrow `gemini` pane on the left, wider `nvim` pane on the right |
+| `emacs-codex` | Narrow `codex` pane on the left, wider Emacs pane on the right |
+| `emacs-gemini` | Narrow `gemini` pane on the left, wider Emacs pane on the right |
+
+The Emacs templates open `emacsclient --tty`, using the configured Emacs daemon rather than starting a separate editor process.
 
 Optional user templates live at `~/.config/trex/templates.toml`, or `$XDG_CONFIG_HOME/trex/templates.toml` when `XDG_CONFIG_HOME` is set:
 
@@ -141,7 +143,7 @@ Optional user templates live at `~/.config/trex/templates.toml`, or `$XDG_CONFIG
 [[templates]]
 id = "agent-editor"
 name = "Agent + Editor"
-description = "codex on the left, nvim on the right"
+description = "Codex on the left, Emacs on the right"
 layout = "columns"
 focus_pane = 0
 
@@ -149,7 +151,7 @@ focus_pane = 0
 command = "codex"
 
 [[templates.panes]]
-command = "nvim"
+command = "emacsclient --tty"
 ```
 
 Supported layouts are `single`, `columns`, and `rows`. Empty pane commands create shell panes. Built-in template ids always win if a user template uses the same id.

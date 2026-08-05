@@ -6,6 +6,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+const EMACS_TTY_COMMAND: &str = "emacsclient --tty .";
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TemplateCatalog {
     pub templates: Vec<SessionTemplate>,
@@ -145,7 +147,7 @@ impl SessionTemplate {
     }
 
     pub fn split_percent(&self) -> Option<u8> {
-        (self.id == "nvim-codex" || self.id == "nvim-gemini").then_some(70)
+        (self.id == "emacs-codex" || self.id == "emacs-gemini").then_some(70)
     }
 
     pub fn pane_summary(&self) -> String {
@@ -260,24 +262,24 @@ fn builtin_templates() -> Vec<SessionTemplate> {
             0,
         ),
         SessionTemplate::new(
-            "nvim-codex",
-            "nvim + Codex",
-            "Codex on the left, nvim on the right",
+            "emacs-codex",
+            "Emacs + Codex",
+            "Codex on the left, Emacs on the right",
             TemplateLayout::Columns,
             vec![
                 TemplatePane::command("codex"),
-                TemplatePane::command("nvim"),
+                TemplatePane::command(EMACS_TTY_COMMAND),
             ],
             0,
         ),
         SessionTemplate::new(
-            "nvim-gemini",
-            "nvim + Gemini",
-            "Gemini on the left, nvim on the right",
+            "emacs-gemini",
+            "Emacs + Gemini",
+            "Gemini on the left, Emacs on the right",
             TemplateLayout::Columns,
             vec![
                 TemplatePane::command("gemini"),
-                TemplatePane::command("nvim"),
+                TemplatePane::command(EMACS_TTY_COMMAND),
             ],
             0,
         ),
@@ -380,11 +382,31 @@ mod tests {
                 "terminal",
                 "two-columns",
                 "two-rows",
-                "nvim-codex",
-                "nvim-gemini"
+                "emacs-codex",
+                "emacs-gemini"
             ]
         );
         assert!(catalog.warnings.is_empty());
+    }
+
+    #[test]
+    fn agent_editor_builtins_preserve_layout_width_and_focus() {
+        let catalog = TemplateCatalog::builtins();
+
+        for (id, agent_command) in [("emacs-codex", "codex"), ("emacs-gemini", "gemini")] {
+            let template = catalog
+                .templates
+                .iter()
+                .find(|template| template.id == id)
+                .unwrap();
+
+            assert_eq!(template.layout, TemplateLayout::Columns);
+            assert_eq!(template.split_percent(), Some(70));
+            assert_eq!(template.focus_pane, 0);
+            assert_eq!(template.panes.len(), 2);
+            assert_eq!(template.panes[0].command, agent_command);
+            assert_eq!(template.panes[1].command, "emacsclient --tty .");
+        }
     }
 
     #[test]
@@ -394,11 +416,11 @@ mod tests {
 [[templates]]
 id = "editor-agent"
 name = "Editor + Agent"
-description = "nvim on the left, codex on the right"
+description = "Emacs on the left, Codex on the right"
 layout = "columns"
 focus_pane = 1
 [[templates.panes]]
-command = "nvim"
+command = "emacsclient --tty"
 [[templates.panes]]
 command = "codex"
 "#,
@@ -408,7 +430,7 @@ command = "codex"
         assert_eq!(template.id, "editor-agent");
         assert_eq!(template.layout, TemplateLayout::Columns);
         assert_eq!(template.focus_pane, 1);
-        assert_eq!(template.pane_summary(), "nvim | codex");
+        assert_eq!(template.pane_summary(), "emacsclient --tty | codex");
         assert!(catalog.warnings.is_empty());
     }
 
@@ -453,7 +475,7 @@ id = "too-few"
 name = "Too Few"
 layout = "columns"
 [[templates.panes]]
-command = "nvim"
+command = "editor"
 "#,
         );
 

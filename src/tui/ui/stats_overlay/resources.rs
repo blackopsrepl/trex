@@ -40,7 +40,7 @@ pub(super) fn render_top_cpu(frame: &mut Frame, app: &App, area: Rect) {
                 Style::default().fg(app.theme.text_dim),
             ),
             Span::styled(
-                format!("{:.<20}", &session.name),
+                format!("{:.<20}", session.name),
                 Style::default().fg(app.theme.text),
             ),
             Span::styled(
@@ -94,7 +94,7 @@ pub(super) fn render_top_memory(frame: &mut Frame, app: &App, area: Rect) {
                 Style::default().fg(app.theme.text_dim),
             ),
             Span::styled(
-                format!("{:.<20}", &session.name),
+                format!("{:.<20}", session.name),
                 Style::default().fg(app.theme.text),
             ),
             Span::styled(
