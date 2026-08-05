@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const EMACS_TTY_COMMAND: &str = "emacsclient --tty";
+const EMACS_TTY_COMMAND: &str = "emacsclient --tty .";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TemplateCatalog {
@@ -405,7 +405,7 @@ mod tests {
             assert_eq!(template.focus_pane, 0);
             assert_eq!(template.panes.len(), 2);
             assert_eq!(template.panes[0].command, agent_command);
-            assert_eq!(template.panes[1].command, EMACS_TTY_COMMAND);
+            assert_eq!(template.panes[1].command, "emacsclient --tty .");
         }
     }
 
