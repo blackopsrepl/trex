@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.6.4](///compare/v0.6.3...v0.6.4) (2026-09-28)
+
+### Features
+
+* **process:** detect hermes agents 31334d9
+
+### Bug Fixes
+
+* **ci:** select the Forgejo Rust runner 7ba6220
+
 ## [0.6.3](///compare/v0.6.2...v0.6.3) (2026-08-05)
 
 
