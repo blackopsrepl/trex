@@ -4,7 +4,9 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
-const AI_PROCESSES: &[&str] = &["claude", "codex", "opencode", "zoyd", "openclaw", "gemini"];
+const AI_PROCESSES: &[&str] = &[
+    "claude", "codex", "opencode", "zoyd", "openclaw", "gemini", "hermes",
+];
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum ProcessState {
@@ -345,6 +347,19 @@ mod tests {
         ];
 
         assert_eq!(ai_process_name("rg", &cmdline), None);
+    }
+
+    #[test]
+    fn test_ai_process_name_detects_hermes() {
+        assert_eq!(ai_process_name("hermes", &[]), Some("hermes".to_string()));
+        assert_eq!(
+            ai_process_name("hermes-agent", &[]),
+            Some("hermes".to_string())
+        );
+        assert_eq!(
+            ai_process_name("hermes-acp", &[]),
+            Some("hermes".to_string())
+        );
     }
 
     #[test]
