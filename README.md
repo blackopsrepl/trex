@@ -21,7 +21,7 @@ trex replaces the tmux session workflow -- listing, switching, creating, killing
 
 **System monitoring.** Live per-session CPU and memory usage with color-coded gauges and sparkline history charts. Health scores (0-100) combine CPU, memory, and activity into a single indicator per session. A bar chart view (`b`) ranks sessions by resource consumption. A stats overlay (`s`) gives you the full picture: top consumers, health summary, and activity timeline.
 
-**AI agent tracking.** Detects running AI coding agents -- Claude, Codex, Gemini, OpenCode, Zoyd, OpenClaw -- by scanning `/proc`. Shows activity state (running/waiting), maps agents to their tmux sessions, and displays parent-child process relationships. Navigate directly to any agent's session from the agent panel.
+**AI agent tracking.** Detects running AI coding agents -- Claude, Codex, Gemini, OpenCode, Zoyd, OpenClaw, Hermes -- by scanning `/proc`. Shows activity state (running/waiting), maps agents to their tmux sessions, and displays parent-child process relationships. Navigate directly to any agent's session from the agent panel.
 
 **Snapshot backend.** `trex snapshot --json` emits the same session, agent, health, git, and system data as structured JSON. This is the read-only backend contract used by companion status-bar and desktop integrations. `trex --help` and `trex --version` are also non-interactive, so they work from scripts and non-TTY shells.
 

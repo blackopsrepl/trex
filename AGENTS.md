@@ -29,7 +29,7 @@ When a task is simple, do the simple thing. Do not expand scope into critical pa
 
 ## Project Overview
 
-`trex` is a Rust tmux session manager with a ratatui TUI. It lists, filters, creates, kills, and attaches to tmux sessions; shows windows and live pane previews; reports per-session CPU, memory, health, and git status; and detects AI coding agents (Claude, Codex, Gemini, OpenCode, Zoyd, OpenClaw) by scanning `/proc`.
+`trex` is a Rust tmux session manager with a ratatui TUI. It lists, filters, creates, kills, and attaches to tmux sessions; shows windows and live pane previews; reports per-session CPU, memory, health, and git status; and detects AI coding agents (Claude, Codex, Gemini, OpenCode, Zoyd, OpenClaw, Hermes) by scanning `/proc`.
 
 Run the interactive TUI from outside tmux. `trex snapshot --json`, `trex --help`, and `trex --version` are non-interactive and are handled before the TTY and `TMUX` checks.
 
